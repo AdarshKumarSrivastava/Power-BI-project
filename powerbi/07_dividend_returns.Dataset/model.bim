@@ -1,0 +1,959 @@
+{
+  "name": "07_dividend_returns",
+  "compatibilityLevel": 1550,
+  "model": {
+    "culture": "en-US",
+    "dataSources": [
+      {
+        "type": "structured",
+        "name": "PostgreSQL/localhost:5432;bluestock_dw",
+        "connectionDetails": {
+          "protocol": "postgresql",
+          "address": {
+            "server": "localhost:5432",
+            "database": "bluestock_dw"
+          },
+          "authentication": null,
+          "query": null
+        },
+        "credential": {
+          "AuthenticationKind": "UsernamePassword",
+          "Username": "postgres",
+          "EncryptConnection": false
+        }
+      }
+    ],
+    "tables": [
+      {
+        "name": "dim_company",
+        "columns": [
+          {
+            "name": "symbol",
+            "dataType": "string",
+            "sourceColumn": "symbol"
+          },
+          {
+            "name": "company_name",
+            "dataType": "string",
+            "sourceColumn": "company_name"
+          },
+          {
+            "name": "sector",
+            "dataType": "string",
+            "sourceColumn": "sector"
+          },
+          {
+            "name": "sub_sector",
+            "dataType": "string",
+            "sourceColumn": "sub_sector"
+          },
+          {
+            "name": "company_logo",
+            "dataType": "string",
+            "sourceColumn": "company_logo"
+          },
+          {
+            "name": "website",
+            "dataType": "string",
+            "sourceColumn": "website"
+          },
+          {
+            "name": "nse_url",
+            "dataType": "string",
+            "sourceColumn": "nse_url"
+          },
+          {
+            "name": "bse_url",
+            "dataType": "string",
+            "sourceColumn": "bse_url"
+          },
+          {
+            "name": "face_value",
+            "dataType": "double",
+            "sourceColumn": "face_value"
+          },
+          {
+            "name": "book_value",
+            "dataType": "double",
+            "sourceColumn": "book_value"
+          },
+          {
+            "name": "about_company",
+            "dataType": "string",
+            "sourceColumn": "about_company"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_company-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_dim_company = Source{[Schema=\"public\",Item=\"dim_company\"]}[Data]",
+                "in",
+                "    public_dim_company"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "dim_year",
+        "columns": [
+          {
+            "name": "year_id",
+            "dataType": "int64",
+            "sourceColumn": "year_id"
+          },
+          {
+            "name": "year_label",
+            "dataType": "string",
+            "sourceColumn": "year_label"
+          },
+          {
+            "name": "fiscal_year",
+            "dataType": "int64",
+            "sourceColumn": "fiscal_year"
+          },
+          {
+            "name": "quarter",
+            "dataType": "string",
+            "sourceColumn": "quarter"
+          },
+          {
+            "name": "is_ttm",
+            "dataType": "boolean",
+            "sourceColumn": "is_ttm"
+          },
+          {
+            "name": "is_half_year",
+            "dataType": "boolean",
+            "sourceColumn": "is_half_year"
+          },
+          {
+            "name": "sort_order",
+            "dataType": "int64",
+            "sourceColumn": "sort_order"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_year-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_dim_year = Source{[Schema=\"public\",Item=\"dim_year\"]}[Data]",
+                "in",
+                "    public_dim_year"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "dim_sector",
+        "columns": [
+          {
+            "name": "sector_id",
+            "dataType": "int64",
+            "sourceColumn": "sector_id"
+          },
+          {
+            "name": "sector_name",
+            "dataType": "string",
+            "sourceColumn": "sector_name"
+          },
+          {
+            "name": "sector_code",
+            "dataType": "string",
+            "sourceColumn": "sector_code"
+          },
+          {
+            "name": "description",
+            "dataType": "string",
+            "sourceColumn": "description"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_sector-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_dim_sector = Source{[Schema=\"public\",Item=\"dim_sector\"]}[Data]",
+                "in",
+                "    public_dim_sector"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "dim_health_label",
+        "columns": [
+          {
+            "name": "label_id",
+            "dataType": "int64",
+            "sourceColumn": "label_id"
+          },
+          {
+            "name": "label_name",
+            "dataType": "string",
+            "sourceColumn": "label_name"
+          },
+          {
+            "name": "min_score",
+            "dataType": "int64",
+            "sourceColumn": "min_score"
+          },
+          {
+            "name": "max_score",
+            "dataType": "int64",
+            "sourceColumn": "max_score"
+          },
+          {
+            "name": "color_hex",
+            "dataType": "string",
+            "sourceColumn": "color_hex"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_health_label-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_dim_health_label = Source{[Schema=\"public\",Item=\"dim_health_label\"]}[Data]",
+                "in",
+                "    public_dim_health_label"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "fact_profit_loss",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "int64",
+            "sourceColumn": "id"
+          },
+          {
+            "name": "symbol",
+            "dataType": "string",
+            "sourceColumn": "symbol"
+          },
+          {
+            "name": "year_label",
+            "dataType": "string",
+            "sourceColumn": "year_label"
+          },
+          {
+            "name": "sales",
+            "dataType": "double",
+            "sourceColumn": "sales"
+          },
+          {
+            "name": "expenses",
+            "dataType": "double",
+            "sourceColumn": "expenses"
+          },
+          {
+            "name": "operating_profit",
+            "dataType": "double",
+            "sourceColumn": "operating_profit"
+          },
+          {
+            "name": "opm_pct",
+            "dataType": "double",
+            "sourceColumn": "opm_pct"
+          },
+          {
+            "name": "other_income",
+            "dataType": "double",
+            "sourceColumn": "other_income"
+          },
+          {
+            "name": "interest",
+            "dataType": "double",
+            "sourceColumn": "interest"
+          },
+          {
+            "name": "depreciation",
+            "dataType": "double",
+            "sourceColumn": "depreciation"
+          },
+          {
+            "name": "profit_before_tax",
+            "dataType": "double",
+            "sourceColumn": "profit_before_tax"
+          },
+          {
+            "name": "tax_pct",
+            "dataType": "double",
+            "sourceColumn": "tax_pct"
+          },
+          {
+            "name": "net_profit",
+            "dataType": "double",
+            "sourceColumn": "net_profit"
+          },
+          {
+            "name": "eps",
+            "dataType": "double",
+            "sourceColumn": "eps"
+          },
+          {
+            "name": "dividend_payout_pct",
+            "dataType": "double",
+            "sourceColumn": "dividend_payout_pct"
+          },
+          {
+            "name": "net_profit_margin_pct",
+            "dataType": "double",
+            "sourceColumn": "net_profit_margin_pct"
+          },
+          {
+            "name": "expense_ratio_pct",
+            "dataType": "double",
+            "sourceColumn": "expense_ratio_pct"
+          },
+          {
+            "name": "interest_coverage",
+            "dataType": "double",
+            "sourceColumn": "interest_coverage"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_profit_loss-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_fact_profit_loss = Source{[Schema=\"public\",Item=\"fact_profit_loss\"]}[Data]",
+                "in",
+                "    public_fact_profit_loss"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "fact_balance_sheet",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "int64",
+            "sourceColumn": "id"
+          },
+          {
+            "name": "symbol",
+            "dataType": "string",
+            "sourceColumn": "symbol"
+          },
+          {
+            "name": "year_label",
+            "dataType": "string",
+            "sourceColumn": "year_label"
+          },
+          {
+            "name": "equity_capital",
+            "dataType": "double",
+            "sourceColumn": "equity_capital"
+          },
+          {
+            "name": "reserves",
+            "dataType": "double",
+            "sourceColumn": "reserves"
+          },
+          {
+            "name": "borrowings",
+            "dataType": "double",
+            "sourceColumn": "borrowings"
+          },
+          {
+            "name": "other_liabilities",
+            "dataType": "double",
+            "sourceColumn": "other_liabilities"
+          },
+          {
+            "name": "total_liabilities",
+            "dataType": "double",
+            "sourceColumn": "total_liabilities"
+          },
+          {
+            "name": "fixed_assets",
+            "dataType": "double",
+            "sourceColumn": "fixed_assets"
+          },
+          {
+            "name": "cwip",
+            "dataType": "double",
+            "sourceColumn": "cwip"
+          },
+          {
+            "name": "investments",
+            "dataType": "double",
+            "sourceColumn": "investments"
+          },
+          {
+            "name": "other_assets",
+            "dataType": "double",
+            "sourceColumn": "other_assets"
+          },
+          {
+            "name": "total_assets",
+            "dataType": "double",
+            "sourceColumn": "total_assets"
+          },
+          {
+            "name": "debt_to_equity",
+            "dataType": "double",
+            "sourceColumn": "debt_to_equity"
+          },
+          {
+            "name": "equity_ratio",
+            "dataType": "double",
+            "sourceColumn": "equity_ratio"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_balance_sheet-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_fact_balance_sheet = Source{[Schema=\"public\",Item=\"fact_balance_sheet\"]}[Data]",
+                "in",
+                "    public_fact_balance_sheet"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "fact_cash_flow",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "int64",
+            "sourceColumn": "id"
+          },
+          {
+            "name": "symbol",
+            "dataType": "string",
+            "sourceColumn": "symbol"
+          },
+          {
+            "name": "year_label",
+            "dataType": "string",
+            "sourceColumn": "year_label"
+          },
+          {
+            "name": "operating_activity",
+            "dataType": "double",
+            "sourceColumn": "operating_activity"
+          },
+          {
+            "name": "investing_activity",
+            "dataType": "double",
+            "sourceColumn": "investing_activity"
+          },
+          {
+            "name": "financing_activity",
+            "dataType": "double",
+            "sourceColumn": "financing_activity"
+          },
+          {
+            "name": "net_cash_flow",
+            "dataType": "double",
+            "sourceColumn": "net_cash_flow"
+          },
+          {
+            "name": "free_cash_flow",
+            "dataType": "double",
+            "sourceColumn": "free_cash_flow"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_cash_flow-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_fact_cash_flow = Source{[Schema=\"public\",Item=\"fact_cash_flow\"]}[Data]",
+                "in",
+                "    public_fact_cash_flow"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "fact_analysis",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "int64",
+            "sourceColumn": "id"
+          },
+          {
+            "name": "symbol",
+            "dataType": "string",
+            "sourceColumn": "symbol"
+          },
+          {
+            "name": "period_label",
+            "dataType": "string",
+            "sourceColumn": "period_label"
+          },
+          {
+            "name": "compounded_sales_growth_pct",
+            "dataType": "double",
+            "sourceColumn": "compounded_sales_growth_pct"
+          },
+          {
+            "name": "compounded_profit_growth_pct",
+            "dataType": "double",
+            "sourceColumn": "compounded_profit_growth_pct"
+          },
+          {
+            "name": "stock_price_cagr_pct",
+            "dataType": "double",
+            "sourceColumn": "stock_price_cagr_pct"
+          },
+          {
+            "name": "roe_pct",
+            "dataType": "double",
+            "sourceColumn": "roe_pct"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_analysis-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_fact_analysis = Source{[Schema=\"public\",Item=\"fact_analysis\"]}[Data]",
+                "in",
+                "    public_fact_analysis"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "fact_ml_scores",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "int64",
+            "sourceColumn": "id"
+          },
+          {
+            "name": "symbol",
+            "dataType": "string",
+            "sourceColumn": "symbol"
+          },
+          {
+            "name": "computed_at",
+            "dataType": "dateTime",
+            "sourceColumn": "computed_at"
+          },
+          {
+            "name": "overall_score",
+            "dataType": "int64",
+            "sourceColumn": "overall_score"
+          },
+          {
+            "name": "profitability_score",
+            "dataType": "int64",
+            "sourceColumn": "profitability_score"
+          },
+          {
+            "name": "growth_score",
+            "dataType": "int64",
+            "sourceColumn": "growth_score"
+          },
+          {
+            "name": "leverage_score",
+            "dataType": "int64",
+            "sourceColumn": "leverage_score"
+          },
+          {
+            "name": "cashflow_score",
+            "dataType": "int64",
+            "sourceColumn": "cashflow_score"
+          },
+          {
+            "name": "trend_score",
+            "dataType": "int64",
+            "sourceColumn": "trend_score"
+          },
+          {
+            "name": "health_label",
+            "dataType": "string",
+            "sourceColumn": "health_label"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_ml_scores-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_fact_ml_scores = Source{[Schema=\"public\",Item=\"fact_ml_scores\"]}[Data]",
+                "in",
+                "    public_fact_ml_scores"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "fact_pros_cons",
+        "columns": [
+          {
+            "name": "id",
+            "dataType": "int64",
+            "sourceColumn": "id"
+          },
+          {
+            "name": "symbol",
+            "dataType": "string",
+            "sourceColumn": "symbol"
+          },
+          {
+            "name": "is_pro",
+            "dataType": "boolean",
+            "sourceColumn": "is_pro"
+          },
+          {
+            "name": "category",
+            "dataType": "string",
+            "sourceColumn": "category"
+          },
+          {
+            "name": "text",
+            "dataType": "string",
+            "sourceColumn": "text"
+          },
+          {
+            "name": "confidence",
+            "dataType": "double",
+            "sourceColumn": "confidence"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_pros_cons-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = PostgreSQL.Database(\"localhost:5432\", \"bluestock_dw\"),",
+                "    public_fact_pros_cons = Source{[Schema=\"public\",Item=\"fact_pros_cons\"]}[Data]",
+                "in",
+                "    public_fact_pros_cons"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "_KeyMeasures",
+        "columns": [
+          {
+            "name": "Placeholder",
+            "dataType": "int64",
+            "isHidden": true,
+            "sourceLineageTag": "Placeholder"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "_KeyMeasures-Partition",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText(\"i45KKi1OLTJU0lEyMjAyMTU1M7ewMjAEAA==\", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Placeholder = _t]),",
+                "    Type = Table.TransformColumnTypes(Source,{{\"Placeholder\", Int64.Type}})",
+                "in",
+                "    Type"
+              ]
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Total Companies",
+            "expression": "COUNT(dim_company[symbol])",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Average ROE",
+            "expression": "AVERAGE(fact_analysis[roe_pct])",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Companies with Excellent Health",
+            "expression": "CALCULATE(COUNT(dim_company[symbol]), fact_ml_scores[overall_score] >= 85)",
+            "formatString": "#,0"
+          },
+          {
+            "name": "Companies with Weak/Poor Health",
+            "expression": "CALCULATE(COUNT(dim_company[symbol]), fact_ml_scores[overall_score] < 50)",
+            "formatString": "#,0"
+          },
+          {
+            "name": "3Y Sales CAGR",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[compounded_sales_growth_pct]), fact_analysis[period_label] = \"3Y\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "5Y Sales CAGR",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[compounded_sales_growth_pct]), fact_analysis[period_label] = \"5Y\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "10Y Sales CAGR",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[compounded_sales_growth_pct]), fact_analysis[period_label] = \"10Y\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "TTM Sales CAGR",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[compounded_sales_growth_pct]), fact_analysis[period_label] = \"TTM\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "3Y Profit CAGR",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[compounded_profit_growth_pct]), fact_analysis[period_label] = \"3Y\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "5Y Profit CAGR",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[compounded_profit_growth_pct]), fact_analysis[period_label] = \"5Y\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "10Y Profit CAGR",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[compounded_profit_growth_pct]), fact_analysis[period_label] = \"10Y\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "TTM Profit CAGR",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[compounded_profit_growth_pct]), fact_analysis[period_label] = \"TTM\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Sector Avg OPM%",
+            "expression": "AVERAGE(fact_profit_loss[opm_pct])",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Sector Avg D/E",
+            "expression": "AVERAGE(fact_balance_sheet[debt_to_equity])",
+            "formatString": "0.00"
+          },
+          {
+            "name": "Sector Avg ROE",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[roe_pct]), ALLEXCEPT(dim_company, dim_company[sector]))",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "ROE Last Year",
+            "expression": "CALCULATE(AVERAGE(fact_analysis[roe_pct]), fact_analysis[period_label] = \"TTM\")",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Total Revenue",
+            "expression": "SUM(fact_profit_loss[sales])",
+            "formatString": "\u20b9#,0.00"
+          },
+          {
+            "name": "Total Net Profit",
+            "expression": "SUM(fact_profit_loss[net_profit])",
+            "formatString": "\u20b9#,0.00"
+          },
+          {
+            "name": "Equity Ratio",
+            "expression": "AVERAGE(fact_balance_sheet[equity_ratio])",
+            "formatString": "0.00"
+          },
+          {
+            "name": "Free Cash Flow",
+            "expression": "SUM(fact_cash_flow[free_cash_flow])",
+            "formatString": "\u20b9#,0.00"
+          },
+          {
+            "name": "Cash Conversion Ratio",
+            "expression": "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[net_profit]))",
+            "formatString": "0.00"
+          },
+          {
+            "name": "Debt-to-Equity",
+            "expression": "AVERAGE(fact_balance_sheet[debt_to_equity])",
+            "formatString": "0.00"
+          },
+          {
+            "name": "Borrowings",
+            "expression": "SUM(fact_balance_sheet[borrowings])",
+            "formatString": "\u20b9#,0.00"
+          },
+          {
+            "name": "Reserves",
+            "expression": "SUM(fact_balance_sheet[reserves])",
+            "formatString": "\u20b9#,0.00"
+          },
+          {
+            "name": "Health Score",
+            "expression": "AVERAGE(fact_ml_scores[overall_score])",
+            "formatString": "0.0"
+          },
+          {
+            "name": "Sales Growth Rate YoY",
+            "expression": "VAR CurrentSales = SUM(fact_profit_loss[sales]) VAR PreviousSales = CALCULATE(SUM(fact_profit_loss[sales]), FILTER(ALL(dim_year), dim_year[fiscal_year] = MAX(dim_year[fiscal_year]) - 1)) RETURN DIVIDE(CurrentSales - PreviousSales, PreviousSales) * 100",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Profit Growth Rate YoY",
+            "expression": "VAR CurrentProfit = SUM(fact_profit_loss[net_profit]) VAR PreviousProfit = CALCULATE(SUM(fact_profit_loss[net_profit]), FILTER(ALL(dim_year), dim_year[fiscal_year] = MAX(dim_year[fiscal_year]) - 1)) RETURN DIVIDE(CurrentProfit - PreviousProfit, PreviousProfit) * 100",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Consistent Growers Flag",
+            "expression": "VAR CurrentCompany = SELECTEDVALUE(dim_company[symbol]) VAR YearsWithGrowth = COUNTROWS(FILTER(SUMMARIZE(FILTER(ALL(fact_profit_loss), fact_profit_loss[symbol] = CurrentCompany), fact_profit_loss[year_label], \"YoYGrowth\", [Sales Growth Rate YoY]), [YoYGrowth] > 0)) RETURN IF(YearsWithGrowth >= 5, 1, 0)",
+            "formatString": "0"
+          },
+          {
+            "name": "Consistent Dividend Payers Flag",
+            "expression": "VAR CurrentCompany = SELECTEDVALUE(dim_company[symbol]) VAR YearsWithDividends = COUNTROWS(FILTER(ALL(fact_profit_loss), fact_profit_loss[symbol] = CurrentCompany && fact_profit_loss[dividend_payout_pct] > 0)) RETURN IF(YearsWithDividends >= 5, 1, 0)",
+            "formatString": "0"
+          },
+          {
+            "name": "Interest Coverage",
+            "expression": "AVERAGE(fact_profit_loss[interest_coverage])",
+            "formatString": "0.00"
+          },
+          {
+            "name": "Dividend Yield",
+            "expression": "AVERAGE(fact_profit_loss[dividend_payout_pct])",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "EPS",
+            "expression": "AVERAGE(fact_profit_loss[eps])",
+            "formatString": "\u20b9#,0.00"
+          },
+          {
+            "name": "ROCE",
+            "expression": "AVERAGE(fact_analysis[roe_pct])",
+            "formatString": "0.00%"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "Relationship_Auto_0",
+        "fromTable": "fact_profit_loss",
+        "fromColumn": "symbol",
+        "toTable": "dim_company",
+        "toColumn": "symbol",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_1",
+        "fromTable": "fact_profit_loss",
+        "fromColumn": "year_label",
+        "toTable": "dim_year",
+        "toColumn": "year_label",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_2",
+        "fromTable": "fact_balance_sheet",
+        "fromColumn": "symbol",
+        "toTable": "dim_company",
+        "toColumn": "symbol",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_3",
+        "fromTable": "fact_balance_sheet",
+        "fromColumn": "year_label",
+        "toTable": "dim_year",
+        "toColumn": "year_label",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_4",
+        "fromTable": "fact_cash_flow",
+        "fromColumn": "symbol",
+        "toTable": "dim_company",
+        "toColumn": "symbol",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_5",
+        "fromTable": "fact_cash_flow",
+        "fromColumn": "year_label",
+        "toTable": "dim_year",
+        "toColumn": "year_label",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_6",
+        "fromTable": "fact_analysis",
+        "fromColumn": "symbol",
+        "toTable": "dim_company",
+        "toColumn": "symbol",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_7",
+        "fromTable": "fact_ml_scores",
+        "fromColumn": "symbol",
+        "toTable": "dim_company",
+        "toColumn": "symbol",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_8",
+        "fromTable": "fact_pros_cons",
+        "fromColumn": "symbol",
+        "toTable": "dim_company",
+        "toColumn": "symbol",
+        "crossFilteringBehavior": "single"
+      },
+      {
+        "name": "Relationship_Auto_9",
+        "fromTable": "dim_company",
+        "fromColumn": "sector",
+        "toTable": "dim_sector",
+        "toColumn": "sector_name",
+        "crossFilteringBehavior": "single"
+      }
+    ]
+  }
+}
