@@ -106,14 +106,16 @@ def run_migration():
 
                 years_data.add((label, fiscal_year, quarter, is_ttm, False, sort_order))
 
-    dim_year = pd.DataFrame(list(years_data), columns=['year_label', 'fiscal_year', 'quarter', 'is_ttm', 'is_half_year', 'sort_order'])
+    # Sort to ensure deterministic ordering of years
+    sorted_years_data = sorted(list(years_data), key=lambda x: (x[5] if x[5] is not None else 9999, x[0]))
+    dim_year = pd.DataFrame(sorted_years_data, columns=['year_label', 'fiscal_year', 'quarter', 'is_ttm', 'is_half_year', 'sort_order'])
     dim_year.reset_index(inplace=True)
     dim_year.rename(columns={'index': 'year_id'}, inplace=True)
     dim_year['year_id'] = dim_year['year_id'] + 1
 
     # 4. Generate dim_sector
     print("Generating dim_sector table...")
-    sectors = dim_company['sector'].dropna().unique()
+    sectors = sorted(dim_company['sector'].dropna().unique())
     dim_sector = pd.DataFrame({'sector_name': sectors})
     dim_sector.reset_index(inplace=True)
     dim_sector.rename(columns={'index': 'sector_id'}, inplace=True)
