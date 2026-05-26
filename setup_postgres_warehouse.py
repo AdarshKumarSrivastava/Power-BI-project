@@ -24,7 +24,7 @@ def run_migration():
     # Standard local server port 5432, database bluestock_dw
     # The script first connects to 'postgres' database to create 'bluestock_dw' if missing
     pg_admin_url = "postgresql://postgres:postgres@localhost:5432/postgres"
-    pg_warehouse_url = "postgresql://postgres:postgres@localhost:5432/bluestock_dw"
+    pg_warehouse_url = "postgresql://postgres:GzUCoWKIZLareWBOtHZyZunJbhQOWpaW@zephyr.proxy.rlwy.net:53469/railway"
 
     try:
         engine = create_engine(pg_admin_url, isolation_level="AUTOCOMMIT")
@@ -147,37 +147,23 @@ def run_migration():
     # If Postgres engine is connected, load the data!
     if pg_engine is not None:
         try:
-            # Create schema by executing schema.sql DDL
-            schema_sql_path = '../DATA ENGINEERING FOUNDATION/sql/schema.sql'
-            if os.path.exists(schema_sql_path):
-                with open(schema_sql_path, 'r') as f:
-                    schema_ddl = f.read()
-                
-                with pg_engine.connect() as conn:
-                    # Clean existing tables first to avoid conflict on schema recreate
-                    tables_to_drop = [
-                        'fact_profit_loss', 'fact_balance_sheet', 'fact_cash_flow',
-                        'fact_analysis', 'fact_ml_scores', 'fact_pros_cons',
-                        'dim_company', 'dim_year', 'dim_sector', 'dim_health_label'
-                    ]
-                    for table in tables_to_drop:
-                        conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
-                    
-                    print("Executing DDL Schema script...")
-                    # Execute queries split by semicolon (simple parsing)
-                    for statement in schema_ddl.split(';'):
-                        if statement.strip():
-                            conn.execute(text(statement))
-                    conn.commit()
-                print("Database schema recreated successfully.")
-
             # Load into Postgres in order
             with pg_engine.connect() as conn:
+                # Clean existing tables first to avoid conflict on schema recreate
+                tables_to_drop = [
+                    'fact_profit_loss', 'fact_balance_sheet', 'fact_cash_flow',
+                    'fact_analysis', 'fact_ml_scores', 'fact_pros_cons',
+                    'dim_company', 'dim_year', 'dim_sector', 'dim_health_label'
+                ]
+                for table in tables_to_drop:
+                    conn.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
+                conn.commit()
+
                 print("Loading dimensions...")
-                dim_company.to_sql('dim_company', pg_engine, if_exists='append', index=False)
-                dim_year.to_sql('dim_year', pg_engine, if_exists='append', index=False)
-                dim_sector.to_sql('dim_sector', pg_engine, if_exists='append', index=False)
-                dim_health_label.to_sql('dim_health_label', pg_engine, if_exists='append', index=False)
+                dim_company.to_sql('dim_company', pg_engine, if_exists='replace', index=False)
+                dim_year.to_sql('dim_year', pg_engine, if_exists='replace', index=False)
+                dim_sector.to_sql('dim_sector', pg_engine, if_exists='replace', index=False)
+                dim_health_label.to_sql('dim_health_label', pg_engine, if_exists='replace', index=False)
 
                 print("Loading facts...")
                 
@@ -203,14 +189,18 @@ def run_migration():
                 pc_cols = ['symbol', 'is_pro', 'category', 'text', 'confidence']
 
                 # Load fact tables
-                fact_profit_loss[pl_cols].to_sql('fact_profit_loss', pg_engine, if_exists='append', index=False)
-                fact_balance_sheet[bs_cols].to_sql('fact_balance_sheet', pg_engine, if_exists='append', index=False)
-                fact_cash_flow[cf_cols].to_sql('fact_cash_flow', pg_engine, if_exists='append', index=False)
-                fact_analysis[an_cols].to_sql('fact_analysis', pg_engine, if_exists='append', index=False)
-                fact_ml_scores[ml_cols].to_sql('fact_ml_scores', pg_engine, if_exists='append', index=False)
+                fact_profit_loss[pl_cols].to_sql('fact_profit_loss', pg_engine, if_exists='replace', index=False)
+                fact_balance_sheet[bs_cols].to_sql('fact_balance_sheet', pg_engine, if_exists='replace', index=False)
+                fact_cash_flow[cf_cols].to_sql('fact_cash_flow', pg_engine, if_exists='replace', index=False)
+                fact_analysis[an_cols].to_sql('fact_analysis', pg_engine, if_exists='replace', index=False)
+                fact_ml_scores[ml_cols].to_sql('fact_ml_scores', pg_engine, if_exists='replace', index=False)
                 
                 if not fact_pros_cons.empty:
-                    fact_pros_cons[pc_cols].to_sql('fact_pros_cons', pg_engine, if_exists='append', index=False)
+                    if 'category' not in fact_pros_cons.columns:
+                        fact_pros_cons['category'] = 'General'
+                    if 'confidence' not in fact_pros_cons.columns:
+                        fact_pros_cons['confidence'] = 0.95
+                    fact_pros_cons[pc_cols].to_sql('fact_pros_cons', pg_engine, if_exists='replace', index=False)
 
                 print("Data warehouse migration completed successfully!")
                 
