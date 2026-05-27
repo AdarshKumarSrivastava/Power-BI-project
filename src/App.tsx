@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, AreaChart, Area, Legend
 } from 'recharts';
-import { 
-  LayoutDashboard, TrendingUp, Users, Activity, 
-  PieChart, Settings, Database, Briefcase 
+import {
+  LayoutDashboard, TrendingUp, Users, Activity,
+  PieChart, Settings, Database, Briefcase
 } from 'lucide-react';
 
 function App() {
@@ -19,8 +19,8 @@ function App() {
     fetch('http://localhost:5001/api/overview')
       .then(res => res.json())
       .then(result => {
-        if(result.chartData) setData(result.chartData);
-        if(result.kpis) setKpis(result.kpis);
+        if (result.chartData) setData(result.chartData);
+        if (result.kpis) setKpis(result.kpis);
         setLoading(false);
       })
       .catch(err => {
@@ -47,10 +47,10 @@ function App() {
           <PieChart size={28} color="#3b82f6" />
           PowerBI Sync
         </div>
-        
+
         <nav>
           {navItems.map((item) => (
-            <div 
+            <div
               key={item.name}
               className={`nav-item ${activeTab === item.name ? 'active' : ''}`}
               onClick={() => setActiveTab(item.name)}
@@ -62,7 +62,7 @@ function App() {
         </nav>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Content  */}
       <main className="main-content">
         <header className="animate-fade-in" style={{ animationDelay: '0s' }}>
           <h1 className="header-title">{activeTab} Dashboard</h1>
@@ -106,18 +106,18 @@ function App() {
                     <AreaChart data={data}>
                       <defs>
                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                      <XAxis dataKey="name" stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
-                      <YAxis stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
-                      <Tooltip 
+                      <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                      <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                      <Tooltip
                         contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                         itemStyle={{ color: '#f8fafc' }}
                       />
@@ -135,9 +135,9 @@ function App() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                      <XAxis dataKey="name" stroke="#94a3b8" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
-                      <Tooltip 
-                        cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                      <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                         contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                       />
                       <Bar dataKey="activeUsers" name="Active Users" fill="#8b5cf6" radius={[4, 4, 0, 0]} />

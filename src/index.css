@@ -42,9 +42,9 @@ body {
 }
 
 .glass-panel:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 .layout-container {
@@ -82,14 +82,67 @@ body {
   align-items: center;
   gap: 12px;
   color: var(--text-secondary);
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   font-weight: 500;
 }
 
-.nav-item:hover, .nav-item.active {
-  background: rgba(59, 130, 246, 0.1);
+.nav-item:hover {
+  background: rgba(59, 130, 246, 0.15);
   color: var(--accent-blue);
+  transform: translateX(8px);
 }
+
+.nav-item.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--accent-blue);
+  box-shadow: inset 4px 0 0 var(--accent-blue);
+}
+
+/* React Settings UI */
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+}
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  transition: all 0.3s ease;
+}
+.setting-row:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: var(--accent-blue);
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+.setting-info h3 { margin: 0 0 6px 0; font-size: 1.1rem; }
+.setting-info p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+
+/* Switch for Settings */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 26px;
+  border: 1px solid var(--border-light);
+}
+.toggle-slider:before {
+  position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 3px;
+  background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .toggle-slider { background-color: var(--accent-blue); border-color: var(--accent-blue); }
+input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 .main-content {
   flex: 1;
