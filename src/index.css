@@ -22,7 +22,7 @@
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-primary);
-  background-image: 
+  background-image:
     radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
     radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
   color: var(--text-primary);
@@ -105,6 +105,7 @@ body {
   gap: 20px;
   max-width: 800px;
 }
+
 .setting-row {
   display: flex;
   justify-content: space-between;
@@ -115,14 +116,24 @@ body {
   border: 1px solid var(--border-light);
   transition: all 0.3s ease;
 }
+
 .setting-row:hover {
   background: rgba(30, 41, 59, 0.9);
   border-color: var(--accent-blue);
   transform: scale(1.02);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
-.setting-info h3 { margin: 0 0 6px 0; font-size: 1.1rem; }
-.setting-info p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+
+.setting-info h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+}
+
+.setting-info p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
 
 /* Switch for Settings */
 .toggle-switch {
@@ -131,18 +142,46 @@ body {
   width: 50px;
   height: 26px;
 }
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
 .toggle-slider {
-  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 26px;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: .4s;
+  border-radius: 26px;
   border: 1px solid var(--border-light);
 }
+
 .toggle-slider:before {
-  position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 3px;
-  background-color: white; transition: .4s; border-radius: 50%;
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
 }
-input:checked + .toggle-slider { background-color: var(--accent-blue); border-color: var(--accent-blue); }
-input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+input:checked+.toggle-slider {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+input:checked+.toggle-slider:before {
+  transform: translateX(24px);
+}
 
 .main-content {
   flex: 1;
@@ -207,6 +246,25 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
   flex-direction: column;
 }
 
+/* Hover animation for right-side chart cards */
+.chart-card:hover {
+  animation: cardHover 0.3s ease-out forwards;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--accent-blue);
+}
+
+@keyframes cardHover {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
 .chart-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -215,8 +273,15 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {

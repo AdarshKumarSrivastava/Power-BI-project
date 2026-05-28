@@ -62,7 +62,7 @@ function App() {
         </nav>
       </aside>
 
-      {/* Main Content  */}
+      {/* Main Content */}
       <main className="main-content">
         <header className="animate-fade-in" style={{ animationDelay: '0s' }}>
           <h1 className="header-title">{activeTab} Dashboard</h1>
