@@ -30,7 +30,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Glassmorphism Classes */
+/* Glassmorphism Classes  adding border transition and etc...*/
 .glass-panel {
   background: var(--bg-card);
   backdrop-filter: blur(12px);
@@ -98,7 +98,7 @@ body {
   box-shadow: inset 4px 0 0 var(--accent-blue);
 }
 
-/* React Settings UI */
+/* React Settings UI  flx and width*/
 .settings-container {
   display: flex;
   flex-direction: column;
@@ -135,7 +135,7 @@ body {
   font-size: 0.9rem;
 }
 
-/* Switch for Settings */
+/* Switch for Settings  adding width and height*/
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -246,7 +246,13 @@ input:checked+.toggle-slider:before {
   flex-direction: column;
 }
 
-/* Hover animation for right-side chart cards */
+/* Added default border and transition for chart cards */
+.chart-card {
+  border: 1px solid var(--border-light);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover animation for right-side chart cards  adding height and width and border*/
 .chart-card:hover {
   animation: cardHover 0.3s ease-out forwards;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
@@ -257,9 +263,11 @@ input:checked+.toggle-slider:before {
   0% {
     transform: translateY(0) scale(1);
   }
+
   50% {
     transform: translateY(-6px) scale(1.02);
   }
+
   100% {
     transform: translateY(0) scale(1);
   }
