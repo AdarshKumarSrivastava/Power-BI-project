@@ -1,0 +1,27 @@
+{
+  "version": "1.30",
+  "theme": "Courier",
+  "pages": [
+    {
+      "name": "ReportPage_0",
+      "displayName": "Page 5.1 \u2014 Revenue & Profit Growth",
+      "displayAreaWidth": 1280.0,
+      "displayAreaHeight": 720.0,
+      "visualContainers": []
+    },
+    {
+      "name": "ReportPage_1",
+      "displayName": "Page 5.2 \u2014 Margin Evolution",
+      "displayAreaWidth": 1280.0,
+      "displayAreaHeight": 720.0,
+      "visualContainers": []
+    },
+    {
+      "name": "ReportPage_2",
+      "displayName": "Page 5.3 \u2014 EPS & Earnings Quality",
+      "displayAreaWidth": 1280.0,
+      "displayAreaHeight": 720.0,
+      "visualContainers": []
+    }
+  ]
+}

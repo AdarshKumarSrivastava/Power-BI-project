@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "settings": {
+    "connection": {
+      "type": "pbiProject"
+    }
+  },
+  "datasetReference": {
+    "byPath": "../06_debt_leverage.Dataset"
+  },
+  "reportReference": {
+    "byPath": "../06_debt_leverage.Report"
+  }
+}

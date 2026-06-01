@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "settings": {
+    "connection": {
+      "type": "pbiProject"
+    }
+  },
+  "datasetReference": {
+    "byPath": "../05_growth_analytics.Dataset"
+  },
+  "reportReference": {
+    "byPath": "../05_growth_analytics.Report"
+  }
+}

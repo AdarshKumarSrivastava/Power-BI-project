@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "settings": {
+    "connection": {
+      "type": "pbiProject"
+    }
+  },
+  "datasetReference": {
+    "byPath": "../01_executive_overview.Dataset"
+  },
+  "reportReference": {
+    "byPath": "../01_executive_overview.Report"
+  }
+}

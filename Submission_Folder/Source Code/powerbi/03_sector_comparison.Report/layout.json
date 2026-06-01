@@ -1,0 +1,27 @@
+{
+  "version": "1.30",
+  "theme": "Courier",
+  "pages": [
+    {
+      "name": "ReportPage_0",
+      "displayName": "Page 3.1 \u2014 Sector vs Sector",
+      "displayAreaWidth": 1280.0,
+      "displayAreaHeight": 720.0,
+      "visualContainers": []
+    },
+    {
+      "name": "ReportPage_1",
+      "displayName": "Page 3.2 \u2014 Companies Within a Sector",
+      "displayAreaWidth": 1280.0,
+      "displayAreaHeight": 720.0,
+      "visualContainers": []
+    },
+    {
+      "name": "ReportPage_2",
+      "displayName": "Page 3.3 \u2014 Sector Trends Over Time",
+      "displayAreaWidth": 1280.0,
+      "displayAreaHeight": 720.0,
+      "visualContainers": []
+    }
+  ]
+}

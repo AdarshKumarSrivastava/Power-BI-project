@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "settings": {
+    "connection": {
+      "type": "pbiProject"
+    }
+  },
+  "datasetReference": {
+    "byPath": "../03_sector_comparison.Dataset"
+  },
+  "reportReference": {
+    "byPath": "../03_sector_comparison.Report"
+  }
+}

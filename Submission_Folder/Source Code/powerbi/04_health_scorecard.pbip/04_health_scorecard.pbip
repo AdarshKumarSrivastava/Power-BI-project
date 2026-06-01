@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "settings": {
+    "connection": {
+      "type": "pbiProject"
+    }
+  },
+  "datasetReference": {
+    "byPath": "../04_health_scorecard.Dataset"
+  },
+  "reportReference": {
+    "byPath": "../04_health_scorecard.Report"
+  }
+}
