@@ -325,3 +325,70 @@ input:checked+.toggle-slider:before {
 .animate-fade-in {
   animation: fadeIn 0.5s ease forwards;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg-secondary);
+  }
+
+  .sidebar-logo {
+    margin-bottom: 16px;
+    justify-content: center;
+  }
+
+  .sidebar nav {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+  }
+
+  .sidebar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-item {
+    margin-bottom: 0;
+    padding: 8px 16px;
+    white-space: nowrap;
+  }
+
+  .nav-item:hover {
+    transform: translateY(-2px);
+  }
+
+  .main-content {
+    padding: 16px;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .header-title {
+    font-size: 1.5rem;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100%, 1fr));
+    gap: 16px;
+  }
+  
+  .chart-card {
+    min-height: 300px;
+    padding: 16px;
+  }
+}
