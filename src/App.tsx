@@ -75,7 +75,7 @@ function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="main-content">
+      <main className="main-content" key={activeTab}>
         <header className="animate-fade-in" style={{ animationDelay: '0s' }}>
           <h1 className="header-title">{activeTab} Dashboard</h1>
           <p className="header-subtitle">Real-time enterprise analytics connected to PostgreSQL Data Warehouse</p>
@@ -160,7 +160,7 @@ function App() {
             </div>
           </>
         ) : (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          <div className="animate-fade-in" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)', animationDelay: '0.1s' }}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '16px' }}>{activeTab} Module</h2>
             <p>This module is currently under development.</p>
           </div>
