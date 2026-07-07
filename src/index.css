@@ -310,9 +310,6 @@ input:checked+.toggle-slider:before {
   font-weight: 600;
   margin-bottom: 24px;
   position: relative;
-
-  font-weight: 600;
-  margin-bottom: 24px;
 }
 
 /* Animations */

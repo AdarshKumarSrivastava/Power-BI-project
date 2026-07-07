@@ -1,22 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, AreaChart, Area, Legend
+  AreaChart, Area, Legend
 } from 'recharts';
 import {
   LayoutDashboard, TrendingUp, Users, Activity,
   PieChart, Settings, Database, Briefcase
 } from 'lucide-react';
 
+interface ChartData {
+  name: string;
+  revenue: number;
+  profit: number;
+  activeUsers: number;
+}
+
+interface KpiData {
+  totalRevenue: number;
+  avgMargin: number;
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState('Overview');
-  const [data, setData] = useState<any[]>([]);
-  const [kpis, setKpis] = useState({ totalRevenue: 0, avgMargin: 0 });
+  const [data, setData] = useState<ChartData[]>([]);
+  const [kpis, setKpis] = useState<KpiData>({ totalRevenue: 0, avgMargin: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch data from Node.js backend
-    fetch('http://localhost:5001/api/overview')
+    // Fetch data from Node.js backend (using Vite proxy)
+    fetch('/api/overview')
       .then(res => res.json())
       .then(result => {
         if (result.chartData) setData(result.chartData);
@@ -71,7 +83,7 @@ function App() {
 
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--accent-blue)' }}>Loading Live Database Data...</div>
-        ) : (
+        ) : activeTab === 'Overview' ? (
           <>
             {/* KPIs */}
             <div className="kpi-grid">
@@ -147,6 +159,11 @@ function App() {
               </div>
             </div>
           </>
+        ) : (
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '16px' }}>{activeTab} Module</h2>
+            <p>This module is currently under development.</p>
+          </div>
         )}
       </main>
     </div>
