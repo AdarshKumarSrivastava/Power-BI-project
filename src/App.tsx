@@ -77,7 +77,7 @@ function App() {
       {/* Main Content */}
       <main className="main-content" key={activeTab}>
         <header className="animate-fade-in" style={{ animationDelay: '0s' }}>
-          <h1 className="header-title">{activeTab} Dashboard</h1>
+          <h1 className="header-title gradient-text-primary">{activeTab} Dashboard</h1>
           <p className="header-subtitle">Real-time enterprise analytics connected to PostgreSQL Data Warehouse</p>
         </header>
 
@@ -99,7 +99,10 @@ function App() {
               </div>
               <div className="glass-panel kpi-card animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <div className="kpi-title">Database Status</div>
-                <div className="kpi-value" style={{ color: 'var(--accent-purple)' }}>Connected</div>
+                <div className="kpi-value status-indicator" style={{ color: 'var(--accent-purple)' }}>
+                  <span className="status-dot"></span>
+                  Connected
+                </div>
                 <div style={{ color: 'var(--success)', marginTop: '8px', fontSize: '0.9rem' }}>bluestock_dw database</div>
               </div>
               <div className="glass-panel kpi-card animate-fade-in" style={{ animationDelay: '0.4s' }}>
@@ -130,7 +133,7 @@ function App() {
                       <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                       <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
                         itemStyle={{ color: '#f8fafc' }}
                       />
                       <Legend />
@@ -150,7 +153,7 @@ function App() {
                       <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                       <Tooltip
                         cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
                       />
                       <Bar dataKey="activeUsers" name="Active Users" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                     </BarChart>
