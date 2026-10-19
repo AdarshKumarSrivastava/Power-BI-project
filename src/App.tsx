@@ -6,7 +6,7 @@ import {
 import {
   LayoutDashboard, TrendingUp,
   PieChart, Settings, Database, Briefcase, ShieldCheck, DollarSign,
-  Layers, CheckCircle2, RefreshCw, Filter, X
+  Layers, CheckCircle2, RefreshCw, Filter, X, Download, Code2, Copy, Check
 } from 'lucide-react';
 
 interface ChartData {
@@ -67,6 +67,52 @@ const STAR_SCHEMA_TABLES = [
   { name: "dim_sector", type: "Dimension", rows: "15", desc: "Sector taxonomy, sub-industry classifications, and benchmark weights." }
 ];
 
+interface DaxMeasure {
+  name: string;
+  category: string;
+  formula: string;
+  description: string;
+}
+
+const DAX_MEASURES: DaxMeasure[] = [
+  {
+    name: "3Y Sales CAGR",
+    category: "Growth Analytics",
+    formula: "3Y Sales CAGR = \nVAR CurrentSales = [Total Sales]\nVAR Sales3Y = CALCULATE([Total Sales], DATEADD(dim_year[year_date], -3, YEAR))\nRETURN IF(Sales3Y > 0, ((CurrentSales / Sales3Y) ^ (1/3)) - 1, BLANK())",
+    description: "Calculates the 3-Year Compound Annual Growth Rate for company revenues."
+  },
+  {
+    name: "Net Profit Margin %",
+    category: "Profitability",
+    formula: "Net Profit Margin % = \nDIVIDE([Total Net Profit], [Total Sales], 0) * 100",
+    description: "Percentage of total top-line revenue converted into bottom-line profits."
+  },
+  {
+    name: "Consistent Dividend Payers Flag",
+    category: "Dividend & Returns",
+    formula: "Consistent Dividend Payers Flag = \nVAR PayoutYears = CALCULATE(DISTINCTCOUNT(fact_cash_flow[year_label]), fact_cash_flow[dividend_paid] < 0)\nRETURN IF(PayoutYears >= 5, 1, 0)",
+    description: "Flags companies maintaining consecutive uninterrupted dividend distributions for 5+ years."
+  },
+  {
+    name: "Altman Z-Score",
+    category: "Health Scorecard",
+    formula: "Altman Z-Score = \n1.2 * [Working Capital / Total Assets] + \n1.4 * [Retained Earnings / Total Assets] + \n3.3 * [EBIT / Total Assets] + \n0.6 * [Market Cap / Total Liabilities] + \n0.999 * [Sales / Total Assets]",
+    description: "Statistical credit-strength measure used to assess bankruptcy and insolvency risk."
+  },
+  {
+    name: "Net Debt to Equity",
+    category: "Debt & Leverage",
+    formula: "Net Debt to Equity = \nVAR NetDebt = [Total Borrowings] - [Cash & Bank Balances]\nRETURN DIVIDE(NetDebt, [Total Shareholders Equity], 0)",
+    description: "Evaluates leverage and solvency by assessing net indebtedness against shareholder net worth."
+  },
+  {
+    name: "Return on Capital Employed (RoCE)",
+    category: "Capital Efficiency",
+    formula: "RoCE % = \nVAR CapitalEmployed = [Total Assets] - [Current Liabilities]\nRETURN DIVIDE([EBIT], CapitalEmployed, 0) * 100",
+    description: "Measures pre-tax operating efficiency relative to long-term capital deployed."
+  }
+];
+
 function App() {
   const [activeTab, setActiveTab] = useState('Overview');
   const [data, setData] = useState<ChartData[]>(DEFAULT_CHART_DATA);
@@ -78,6 +124,7 @@ function App() {
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedYear, setSelectedYear] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   // Slicer Filtered Datasets
   const filteredData = data.filter(d => selectedYear === 'All' || d.name === selectedYear);
@@ -87,6 +134,19 @@ function App() {
     const matchesSearch = searchQuery === '' || c.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || c.sector.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSector && matchesSearch;
   });
+
+  const exportToCSV = () => {
+    const headers = ["Year", "Revenue_Crores", "Net_Profit_Crores", "Active_Portfolios"];
+    const rows = filteredData.map(d => [d.name, d.revenue, d.profit, d.activeUsers]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Nifty100_Financial_Data_${activeTab.replace(/\s+/g, '_')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -165,27 +225,49 @@ function App() {
             <h1 className="header-title gradient-text-primary">{activeTab} Dashboard</h1>
             <p className="header-subtitle">Nifty 100 Financial Intelligence connected to Star Schema Data Warehouse</p>
           </div>
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 18px',
-              borderRadius: '10px',
-              border: '1px solid rgba(255,255,255,0.15)',
-              background: 'rgba(30, 41, 59, 0.7)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: '0.85rem',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-            {loading ? 'Refreshing...' : 'Refresh Data'}
-          </button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={exportToCSV}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '10px',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                background: 'rgba(59, 130, 246, 0.15)',
+                color: 'var(--accent-blue)',
+                cursor: 'pointer',
+                fontWeight: 500,
+                fontSize: '0.85rem',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <Download size={16} />
+              Export CSV
+            </button>
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.15)',
+                background: 'rgba(30, 41, 59, 0.7)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontWeight: 500,
+                fontSize: '0.85rem',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Refreshing...' : 'Refresh Data'}
+            </button>
+          </div>
         </header>
 
         {/* Slicer & Filters Bar */}
@@ -607,6 +689,48 @@ function App() {
                   <p>{t.desc}</p>
                 </div>
               ))}
+            </div>
+
+            <div style={{ marginTop: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <Code2 size={24} color="#8b5cf6" />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>DAX Measure Formulas Explorer</h3>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '16px' }}>
+                Pre-programmed analytical business logic embedded in Power BI <code>_KeyMeasures</code> table.
+              </p>
+
+              <div className="dax-grid">
+                {DAX_MEASURES.map((m, idx) => (
+                  <div key={m.name} className="dax-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{m.name}</h4>
+                      <span className="badge badge-info">{m.category}</span>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '8px' }}>{m.description}</p>
+                    <pre className="dax-code">{m.formula}</pre>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(m.formula);
+                        setCopiedIndex(idx);
+                        setTimeout(() => setCopiedIndex(null), 2000);
+                      }}
+                      className="filter-btn"
+                      style={{ alignSelf: 'flex-start', marginTop: 'auto', fontSize: '0.75rem', padding: '6px 12px' }}
+                    >
+                      {copiedIndex === idx ? (
+                        <>
+                          <Check size={14} color="#10b981" /> Copied Formula!
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} /> Copy DAX
+                        </>
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
