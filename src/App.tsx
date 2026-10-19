@@ -6,7 +6,7 @@ import {
 import {
   LayoutDashboard, TrendingUp,
   PieChart, Settings, Database, Briefcase, ShieldCheck, DollarSign,
-  Layers, CheckCircle2, RefreshCw
+  Layers, CheckCircle2, RefreshCw, Filter, X
 } from 'lucide-react';
 
 interface ChartData {
@@ -75,6 +75,18 @@ function App() {
   const [dbStatus, setDbStatus] = useState<'connected' | 'cached'>('cached');
   const [statusMessage, setStatusMessage] = useState('PostgreSQL Data Warehouse (Star Schema)');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [selectedSector, setSelectedSector] = useState('All');
+  const [selectedYear, setSelectedYear] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Slicer Filtered Datasets
+  const filteredData = data.filter(d => selectedYear === 'All' || d.name === selectedYear);
+  const filteredSectors = SECTOR_DATA.filter(s => selectedSector === 'All' || s.name === selectedSector);
+  const filteredCompanies = HEALTH_COMPANIES.filter(c => {
+    const matchesSector = selectedSector === 'All' || c.sector === selectedSector;
+    const matchesSearch = searchQuery === '' || c.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || c.sector.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSector && matchesSearch;
+  });
 
   const fetchData = async () => {
     setLoading(true);
@@ -176,6 +188,52 @@ function App() {
           </button>
         </header>
 
+        {/* Slicer & Filters Bar */}
+        <div className="filter-bar animate-fade-in" style={{ animationDelay: '0.05s' }}>
+          <div className="filter-group">
+            <span className="filter-label"><Filter size={14} style={{ display: 'inline', marginRight: '4px' }} /> Sector:</span>
+            <select className="filter-select" value={selectedSector} onChange={e => setSelectedSector(e.target.value)}>
+              <option value="All">All Sectors (Nifty 100)</option>
+              <option value="IT">Information Tech</option>
+              <option value="Banking">Banking & Finance</option>
+              <option value="Automobile">Automobile</option>
+              <option value="Pharma">Pharma & Healthcare</option>
+              <option value="Energy">Energy / Oil & Gas</option>
+              <option value="FMCG">FMCG / Consumer</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <span className="filter-label">Fiscal Year:</span>
+            <select className="filter-select" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+              <option value="All">All Years (FY19-FY24)</option>
+              <option value="FY24">FY 2024</option>
+              <option value="FY23">FY 2023</option>
+              <option value="FY22">FY 2022</option>
+              <option value="FY21">FY 2021</option>
+              <option value="FY20">FY 2020</option>
+              <option value="FY19">FY 2019</option>
+            </select>
+          </div>
+          <div className="filter-group" style={{ flex: 1, minWidth: '180px' }}>
+            <input
+              type="text"
+              className="filter-input"
+              placeholder="Filter company (e.g. TCS, HDFCBANK)..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ width: '100%' }}
+            />
+          </div>
+          {(selectedSector !== 'All' || selectedYear !== 'All' || searchQuery !== '') && (
+            <button
+              className="filter-btn filter-btn-secondary"
+              onClick={() => { setSelectedSector('All'); setSelectedYear('All'); setSearchQuery(''); }}
+            >
+              <X size={14} /> Reset
+            </button>
+          )}
+        </div>
+
         {/* Overview Tab */}
         {activeTab === 'Overview' && (
           <>
@@ -212,7 +270,7 @@ function App() {
                 <h3 className="chart-title">Sales & Net Profit Trends (Over Time)</h3>
                 <div style={{ flex: 1, width: '100%', minHeight: '300px' }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data}>
+                    <AreaChart data={filteredData}>
                       <defs>
                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
@@ -242,7 +300,7 @@ function App() {
                 <h3 className="chart-title">Market Trading Volume Estimate</h3>
                 <div style={{ flex: 1, width: '100%', minHeight: '300px' }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data}>
+                    <BarChart data={filteredData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
                       <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                       <Tooltip
@@ -288,7 +346,7 @@ function App() {
               <h3 className="chart-title">Revenue vs Profit Growth Trajectory</h3>
               <div style={{ flex: 1, width: '100%', minHeight: '350px' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={data}>
+                  <LineChart data={filteredData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis dataKey="name" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" />
@@ -311,13 +369,13 @@ function App() {
                 <h3 className="chart-title">Revenue Distribution by Sector</h3>
                 <div style={{ flex: 1, width: '100%', minHeight: '300px' }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={SECTOR_DATA} layout="vertical">
+                    <BarChart data={filteredSectors} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis type="number" stroke="#94a3b8" />
                       <YAxis dataKey="name" type="category" stroke="#94a3b8" width={80} />
                       <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderRadius: '12px' }} />
                       <Bar dataKey="revenue" name="Revenue (₹ Cr)" fill="#3b82f6" radius={[0, 6, 6, 0]}>
-                        {SECTOR_DATA.map((entry, index) => (
+                        {filteredSectors.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Bar>
@@ -330,7 +388,7 @@ function App() {
                 <h3 className="chart-title">Average P/E Multiples</h3>
                 <div style={{ flex: 1, width: '100%', minHeight: '300px' }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={SECTOR_DATA}>
+                    <BarChart data={filteredSectors}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis dataKey="name" stroke="#94a3b8" />
                       <YAxis stroke="#94a3b8" />
@@ -356,7 +414,7 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {SECTOR_DATA.map((s) => (
+                    {filteredSectors.map((s) => (
                       <tr key={s.name}>
                         <td style={{ fontWeight: 600 }}>{s.name}</td>
                         <td>₹{s.revenue.toLocaleString()}</td>
@@ -414,7 +472,7 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {HEALTH_COMPANIES.map((c) => (
+                    {filteredCompanies.map((c) => (
                       <tr key={c.symbol}>
                         <td style={{ fontWeight: 700, color: 'var(--accent-blue)' }}>{c.symbol}</td>
                         <td>{c.sector}</td>
