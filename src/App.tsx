@@ -50,7 +50,7 @@ function App() {
     { name: 'Data Sources', icon: Database },
     { name: 'Settings', icon: Settings },
   ];
-
+  // here i add the icons and the navigation bar
   return (
     <div className="layout-container">
       {/* Sidebar */}
