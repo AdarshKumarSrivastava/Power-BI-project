@@ -16,8 +16,50 @@ const { Pool } = pg;
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173'];
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Postman, server-side)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy blocked origin: ${origin}`));
+    }
+  }
+}));
 app.use(express.json());
+
+// Request logger for debugging API traffic
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    if (req.originalUrl.startsWith('/api')) {
+      console.log(`[API] ${req.method} ${req.originalUrl} → ${res.statusCode} (${duration}ms)`);
+    }
+  });
+  next();
+});
+
+// Simple in-memory rate limiter (per IP, 60 requests/minute)
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000;
+const RATE_LIMIT_MAX = 60;
+
+app.use('/api', (req, res, next) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW) {
+    rateLimitMap.set(ip, { windowStart: now, count: 1 });
+    return next();
+  }
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) {
+    return res.status(429).json({ error: 'Too many requests. Please slow down.', retryAfterMs: RATE_LIMIT_WINDOW - (now - entry.windowStart) });
+  }
+  next();
+});
 
 // Initialize Pool with SSL support for cloud Postgres (Railway, Neon, Supabase)
 let pool = null;
