@@ -269,10 +269,14 @@ def generate_dashboards():
         {"name": "ROCE", "expression": "AVERAGE(fact_analysis[roe_pct])", "formatString": "0.00%"}
     ]
 
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    powerbi_dir = os.path.join(BASE_DIR, "powerbi")
+    os.makedirs(powerbi_dir, exist_ok=True)
+
     for db_id, db_meta in dashboards.items():
-        db_dir = os.path.join("powerbi", f"{db_id}.pbip")
-        dataset_dir = os.path.join("powerbi", f"{db_id}.Dataset")
-        report_dir = os.path.join("powerbi", f"{db_id}.Report")
+        db_dir = os.path.join(powerbi_dir, f"{db_id}.pbip")
+        dataset_dir = os.path.join(powerbi_dir, f"{db_id}.Dataset")
+        report_dir = os.path.join(powerbi_dir, f"{db_id}.Report")
 
         # Create directories
         os.makedirs(db_dir, exist_ok=True)
@@ -296,7 +300,7 @@ def generate_dashboards():
                 "byPath": f"../{db_id}.Report"
             }
         }
-        with open(os.path.join(db_dir, f"{db_id}.pbip"), "w") as f:
+        with open(os.path.join(db_dir, f"{db_id}.pbip"), "w", encoding="utf-8") as f:
             json.dump(pbip_data, f, indent=2)
 
         # 2. Write Dataset definition.pbidataset
@@ -305,7 +309,7 @@ def generate_dashboards():
                 "byPath": "./model.bim"
             }
         }
-        with open(os.path.join(dataset_dir, "definition.pbidataset"), "w") as f:
+        with open(os.path.join(dataset_dir, "definition.pbidataset"), "w", encoding="utf-8") as f:
             json.dump(pbidataset_data, f, indent=2)
 
         # 3. Write Report definition.pbir
@@ -314,7 +318,7 @@ def generate_dashboards():
                 "byPath": f"../{db_id}.Dataset"
             }
         }
-        with open(os.path.join(report_dir, "definition.pbir"), "w") as f:
+        with open(os.path.join(report_dir, "definition.pbir"), "w", encoding="utf-8") as f:
             json.dump(pbir_data, f, indent=2)
 
         # 4. Generate the model.bim Tabular Object Model JSON file
@@ -419,7 +423,7 @@ def generate_dashboards():
             }
         }
 
-        with open(os.path.join(dataset_dir, "model.bim"), "w") as f:
+        with open(os.path.join(dataset_dir, "model.bim"), "w", encoding="utf-8") as f:
             json.dump(bim_data, f, indent=2)
 
         # 5. Generate Report layout.json containing the pre-named pages
@@ -438,7 +442,7 @@ def generate_dashboards():
             "theme": "Courier",
             "pages": layout_pages
         }
-        with open(os.path.join(report_dir, "layout.json"), "w") as f:
+        with open(os.path.join(report_dir, "layout.json"), "w", encoding="utf-8") as f:
             json.dump(layout_data, f, indent=2)
 
     print("\n[SUCCESS] Generated all 7 Power BI Project Templates in the 'powerbi/' folder!")

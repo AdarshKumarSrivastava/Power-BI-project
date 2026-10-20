@@ -7,24 +7,24 @@ import sys
 def run_migration():
     print("Starting Star Schema Warehouse Setup...")
 
-    # Paths
-    sqlite_db_path = '../DATA ENGINEERING FOUNDATION/db.sqlite3'
-    csv_clean_dir = '../DATA ENGINEERING FOUNDATION/data/clean'
+    # Paths resolved relative to script location
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    sqlite_db_path = os.environ.get('SQLITE_DB_PATH', os.path.normpath(os.path.join(BASE_DIR, '..', 'DATA ENGINEERING FOUNDATION', 'db.sqlite3')))
+    csv_clean_dir = os.environ.get('CSV_CLEAN_DIR', os.path.normpath(os.path.join(BASE_DIR, '..', 'DATA ENGINEERING FOUNDATION', 'data', 'clean')))
 
     # Check database paths
     if not os.path.exists(sqlite_db_path):
         print(f"Error: SQLite database not found at {sqlite_db_path}")
+        print("Set SQLITE_DB_PATH environment variable if located elsewhere.")
         sys.exit(1)
 
-    print("Reading from SQLite and CSV sources...")
+    print(f"Reading from SQLite database: {sqlite_db_path}")
     sqlite_conn = sqlite3.connect(sqlite_db_path)
 
     # 1. Connect to PostgreSQL
-    # Using the connection details requested in Section 4.1
-    # Standard local server port 5432, database bluestock_dw
-    # The script first connects to 'postgres' database to create 'bluestock_dw' if missing
-    pg_admin_url = "postgresql://postgres:postgres@localhost:5432/postgres"
-    pg_warehouse_url = "postgresql://postgres:GzUCoWKIZLareWBOtHZyZunJbhQOWpaW@zephyr.proxy.rlwy.net:53469/railway"
+    # Using connection details from environment variables or standard defaults
+    pg_admin_url = os.environ.get("PG_ADMIN_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
+    pg_warehouse_url = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/bluestock_dw")
 
     try:
         engine = create_engine(pg_admin_url, isolation_level="AUTOCOMMIT")
@@ -210,7 +210,7 @@ def run_migration():
     else:
         # If Postgres is not running, generate SQL inserts dump so they can import it easily
         print("\nSince PostgreSQL is not currently running locally, generating a complete SQL seed dump:")
-        dump_path = 'powerbi/bluestock_dw_seed.sql'
+        dump_path = os.path.join(BASE_DIR, 'powerbi', 'bluestock_dw_seed.sql')
         print(f"Saving SQL seed script to {dump_path}...")
         
         with open(dump_path, 'w', encoding='utf-8') as f:
@@ -218,9 +218,9 @@ def run_migration():
             f.write("-- Connect to bluestock_dw and execute this file\n\n")
             
             # Recreate tables DDL
-            schema_sql_path = '../DATA ENGINEERING FOUNDATION/sql/schema.sql'
+            schema_sql_path = os.path.normpath(os.path.join(BASE_DIR, '..', 'DATA ENGINEERING FOUNDATION', 'sql', 'schema.sql'))
             if os.path.exists(schema_sql_path):
-                with open(schema_sql_path, 'r') as s_f:
+                with open(schema_sql_path, 'r', encoding='utf-8') as s_f:
                     f.write(s_f.read())
                     f.write("\n\n")
 
@@ -292,7 +292,20 @@ def run_migration():
                     conf = r['confidence'] if 'confidence' in r and pd.notna(r['confidence']) else 'NULL'
                     f.write(f"INSERT INTO fact_pros_cons (symbol, is_pro, category, text, confidence) VALUES ('{r['symbol']}', {is_pro_val}, '{cat}', '{txt}', {conf}) ON CONFLICT DO NOTHING;\n")
             
-        print(f"Generated SQL seed dump successfully. You can import this into PostgreSQL to set up everything automatically!")
+        print("Generated SQL seed dump successfully. You can import this into PostgreSQL to set up everything automatically!")
+
+    # Clean up database connections
+    try:
+        sqlite_conn.close()
+        print("SQLite connection closed cleanly.")
+    except Exception:
+        pass
+
+    if pg_engine:
+        try:
+            pg_engine.dispose()
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     run_migration()
