@@ -345,8 +345,13 @@ function App() {
           {navItems.map((item) => (
             <div
               key={item.name}
+              role="button"
+              tabIndex={0}
+              aria-label={`Navigate to ${item.name}`}
+              aria-current={activeTab === item.name ? 'page' : undefined}
               className={`nav-item ${activeTab === item.name ? 'active' : ''}`}
               onClick={() => setActiveTab(item.name)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab(item.name); } }}
             >
               <item.icon size={20} />
               <span>{item.name}</span>
@@ -386,6 +391,7 @@ function App() {
             <button
               onClick={fetchData}
               disabled={loading}
+              aria-label="Refresh dashboard data"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -437,7 +443,7 @@ function App() {
         <div className="filter-bar animate-fade-in" style={{ animationDelay: '0.05s' }}>
           <div className="filter-group">
             <span className="filter-label"><Filter size={14} style={{ display: 'inline', marginRight: '4px' }} /> Sector:</span>
-            <select className="filter-select" value={selectedSector} onChange={e => setSelectedSector(e.target.value)}>
+            <select className="filter-select" value={selectedSector} onChange={e => setSelectedSector(e.target.value)} aria-label="Filter by sector">
               <option value="All">All Sectors (Nifty 100)</option>
               <option value="IT">Information Tech</option>
               <option value="Banking">Banking & Finance</option>
@@ -449,7 +455,7 @@ function App() {
           </div>
           <div className="filter-group">
             <span className="filter-label">Fiscal Year:</span>
-            <select className="filter-select" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+            <select className="filter-select" value={selectedYear} onChange={e => setSelectedYear(e.target.value)} aria-label="Filter by fiscal year">
               <option value="All">All Years (FY19-FY24)</option>
               <option value="FY24">FY 2024</option>
               <option value="FY23">FY 2023</option>
@@ -466,6 +472,7 @@ function App() {
               placeholder="Filter company (e.g. TCS, HDFCBANK)..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
+              aria-label="Search companies by symbol or sector"
               style={{ width: '100%' }}
             />
           </div>
