@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, Legend, LineChart, Line, Cell
@@ -6,8 +6,64 @@ import {
 import {
   LayoutDashboard, TrendingUp,
   PieChart, Settings, Database, Briefcase, ShieldCheck, DollarSign,
-  Layers, CheckCircle2, RefreshCw, Filter, X, Download, Code2, Copy, Check
+  Layers, CheckCircle2, RefreshCw, Filter, X, Download, Code2, Copy, Check,
+  AlertTriangle
 } from 'lucide-react';
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallbackTitle?: string;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('[PowerBI UI Error Boundary] Caught component render error:', error, errorInfo);
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="glass-panel" style={{ padding: '32px', textAlign: 'center', margin: '24px 0' }}>
+          <div style={{ display: 'inline-flex', padding: '16px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', marginBottom: '16px' }}>
+            <AlertTriangle size={36} />
+          </div>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', color: 'var(--text-primary)' }}>
+            {this.props.fallbackTitle || 'Visualization Error Encountered'}
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '480px', margin: '0 auto 20px' }}>
+            {this.state.error?.message || 'A visual dashboard component encountered an unexpected rendering error.'}
+          </p>
+          <button
+            onClick={this.handleReset}
+            className="filter-btn"
+            style={{ background: 'var(--accent-blue)', color: '#fff', border: 'none', margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+            <RefreshCw size={14} /> Reset View
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 interface ChartData {
   name: string;
@@ -135,17 +191,73 @@ function App() {
     return matchesSector && matchesSearch;
   });
 
+  const escapeCsvCell = (val: string | number | undefined | null): string => {
+    const str = String(val ?? '');
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
   const exportToCSV = () => {
-    const headers = ["Year", "Revenue_Crores", "Net_Profit_Crores", "Active_Portfolios"];
-    const rows = filteredData.map(d => [d.name, d.revenue, d.profit, d.activeUsers]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Nifty100_Financial_Data_${activeTab.replace(/\s+/g, '_')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      let headers: string[] = [];
+      let rows: (string | number)[][] = [];
+
+      if (activeTab === 'Sector Comparison') {
+        headers = ["Sector", "Revenue_Crores", "Avg_Margin_Pct", "Avg_PE"];
+        rows = filteredSectors.map(s => [s.name, s.revenue, s.margin, s.pe]);
+      } else if (activeTab === 'Health Scorecard') {
+        headers = ["Symbol", "Sector", "Altman_Z_Score", "Piotroski_F_Score", "RoE", "Debt_Equity", "Risk_Rating"];
+        rows = filteredCompanies.map(c => [c.symbol, c.sector, c.altmanZ, c.piotroskiF, c.roe, c.debtEquity, c.status]);
+      } else if (activeTab === 'Data Sources') {
+        headers = ["Table_Name", "Type", "Estimated_Rows", "Description"];
+        rows = STAR_SCHEMA_TABLES.map(t => [t.name, t.type, t.rows, t.desc]);
+      } else {
+        // Overview, Financial Analytics, Debt & Leverage, Dividend Returns
+        headers = ["Year", "Revenue_Crores", "Net_Profit_Crores", "Active_Portfolios"];
+        rows = filteredData.map(d => [d.name, d.revenue, d.profit, d.activeUsers]);
+      }
+
+      const csvContent = [
+        headers.map(escapeCsvCell).join(','),
+        ...rows.map(row => row.map(escapeCsvCell).join(','))
+      ].join('\r\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Nifty100_${activeTab.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[PowerBI UI] Failed to generate CSV export:', err);
+    }
+  };
+
+  const copyToClipboard = async (text: string, index: number) => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (err) {
+      console.warn('[PowerBI UI] Clipboard copy failed:', err);
+    }
   };
 
   const fetchData = async () => {
@@ -316,8 +428,9 @@ function App() {
           )}
         </div>
 
-        {/* Overview Tab */}
-        {activeTab === 'Overview' && (
+        <ErrorBoundary key={activeTab}>
+          {/* Overview Tab */}
+          {activeTab === 'Overview' && (
           <>
             {/* KPIs */}
             <div className="kpi-grid">
@@ -710,11 +823,7 @@ function App() {
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '8px' }}>{m.description}</p>
                     <pre className="dax-code">{m.formula}</pre>
                     <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(m.formula);
-                        setCopiedIndex(idx);
-                        setTimeout(() => setCopiedIndex(null), 2000);
-                      }}
+                      onClick={() => copyToClipboard(m.formula, idx)}
                       className="filter-btn"
                       style={{ alignSelf: 'flex-start', marginTop: 'auto', fontSize: '0.75rem', padding: '6px 12px' }}
                     >
@@ -795,6 +904,7 @@ function App() {
             </div>
           </div>
         )}
+        </ErrorBoundary>
       </main>
     </div>
   );
