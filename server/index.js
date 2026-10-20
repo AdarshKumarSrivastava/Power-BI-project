@@ -21,16 +21,31 @@ app.use(express.json());
 
 // Initialize Pool with SSL support for cloud Postgres (Railway, Neon, Supabase)
 let pool = null;
-if (process.env.DATABASE_URL) {
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.trim() !== '') {
   try {
-    const isCloud = process.env.DATABASE_URL.includes('railway') || process.env.DATABASE_URL.includes('neon') || process.env.DATABASE_URL.includes('aws');
+    const isCloud = process.env.DATABASE_URL.includes('railway') || 
+                    process.env.DATABASE_URL.includes('neon') || 
+                    process.env.DATABASE_URL.includes('aws') ||
+                    process.env.DATABASE_URL.includes('supabase');
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: isCloud ? { rejectUnauthorized: false } : undefined,
-      connectionTimeoutMillis: 3000,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      max: 10,
+    });
+
+    // Prevent unhandled error event from crashing the Node.js process if an idle client disconnects
+    pool.on('error', (err) => {
+      console.error('[PowerBI Backend] Unexpected error on idle PostgreSQL client:', err.message);
+    });
+
+    pool.on('connect', () => {
+      console.log('[PowerBI Backend] Established active client connection to PostgreSQL warehouse.');
     });
   } catch (err) {
-    console.warn("Failed to initialize PG pool:", err.message);
+    console.warn("[PowerBI Backend] Failed to initialize PG pool:", err.message);
+    pool = null;
   }
 }
 
@@ -107,18 +122,23 @@ app.get('/api/overview', async (req, res) => {
         activeUsers: Math.floor(Math.random() * (3500 - 1800) + 1800)
       }));
 
+      const rawTotalRevenue = Number(kpiResult.rows[0]?.total_revenue);
+      const rawAvgMargin = Number(kpiResult.rows[0]?.avg_margin);
+      const rawTotalProfit = Number(kpiResult.rows[0]?.total_profit);
+
       return res.json({
         chartData: chartData.length > 0 ? chartData : fallbackOverview.chartData,
         kpis: {
-          totalRevenue: parseFloat(kpiResult.rows[0]?.total_revenue || fallbackOverview.kpis.totalRevenue),
-          avgMargin: parseFloat(kpiResult.rows[0]?.avg_margin || fallbackOverview.kpis.avgMargin).toFixed(2),
-          totalProfit: parseFloat(kpiResult.rows[0]?.total_profit || fallbackOverview.kpis.totalProfit)
+          totalRevenue: Number.isFinite(rawTotalRevenue) ? rawTotalRevenue : fallbackOverview.kpis.totalRevenue,
+          avgMargin: Number.isFinite(rawAvgMargin) ? parseFloat(rawAvgMargin.toFixed(2)) : fallbackOverview.kpis.avgMargin,
+          totalProfit: Number.isFinite(rawTotalProfit) ? rawTotalProfit : fallbackOverview.kpis.totalProfit,
+          cagr: fallbackOverview.kpis.cagr
         },
         status: "live",
         source: "PostgreSQL bluestock_dw"
       });
     } catch (err) {
-      console.warn("DB query failed, serving fallback overview data:", err.message);
+      console.warn("[PowerBI Backend] DB query failed, serving fallback overview data:", err.message);
     }
   }
 
@@ -145,7 +165,44 @@ app.get('/api/health-scorecard', async (req, res) => {
   });
 });
 
-// Start Server
-app.listen(port, () => {
+// 404 Handler for API routes
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: 'Endpoint not found',
+    requestedPath: req.originalUrl,
+    status: 'error'
+  });
+});
+
+// Centralized Error Handling Middleware
+app.use((err, req, res, _next) => {
+  console.error('[PowerBI Backend] Uncaught middleware error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message,
+    status: 'error'
+  });
+});
+
+// Start Server with Graceful Shutdown
+const server = app.listen(port, () => {
   console.log(`[PowerBI Backend] API Server active on http://localhost:${port}`);
 });
+
+const gracefulShutdown = (signal) => {
+  console.log(`[PowerBI Backend] Received ${signal}. Closing server gracefully...`);
+  server.close(async () => {
+    if (pool) {
+      try {
+        await pool.end();
+        console.log('[PowerBI Backend] PostgreSQL pool closed successfully.');
+      } catch (err) {
+        console.error('[PowerBI Backend] Error closing PostgreSQL pool:', err.message);
+      }
+    }
+    process.exit(0);
+  });
+};
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
