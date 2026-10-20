@@ -151,18 +151,55 @@ app.get('/api/overview', async (req, res) => {
 
 // Sector Breakdown Endpoint
 app.get('/api/sectors', async (req, res) => {
-  res.json({
-    sectors: fallbackSectors,
-    status: pool ? "live_fallback" : "mock"
-  });
+  try {
+    const { sector, search } = req.query;
+    let results = [...fallbackSectors];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(s => s.sector.toLowerCase().includes(secLower));
+    }
+    if (search && String(search).trim() !== '') {
+      const q = String(search).toLowerCase();
+      results = results.filter(s => s.sector.toLowerCase().includes(q));
+    }
+
+    res.json({
+      sectors: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve sector breakdown', message: err.message });
+  }
 });
 
 // Financial Health Endpoint
 app.get('/api/health-scorecard', async (req, res) => {
-  res.json({
-    scores: fallbackHealthScores,
-    status: pool ? "live_fallback" : "mock"
-  });
+  try {
+    const { sector, risk, search } = req.query;
+    let results = [...fallbackHealthScores];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(s => s.sector.toLowerCase().includes(secLower));
+    }
+    if (risk && risk !== 'All') {
+      results = results.filter(s => s.riskLevel.toLowerCase() === String(risk).toLowerCase());
+    }
+    if (search && String(search).trim() !== '') {
+      const q = String(search).toLowerCase();
+      results = results.filter(s => s.symbol.toLowerCase().includes(q) || s.sector.toLowerCase().includes(q));
+    }
+
+    res.json({
+      scores: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve health scorecard', message: err.message });
+  }
 });
 
 // 404 Handler for API routes

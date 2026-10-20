@@ -181,6 +181,8 @@ function App() {
   const [selectedYear, setSelectedYear] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [lastSyncTime, setLastSyncTime] = useState<string>(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   // Slicer Filtered Datasets
   const filteredData = data.filter(d => selectedYear === 'All' || d.name === selectedYear);
@@ -262,9 +264,16 @@ function App() {
 
   const fetchData = async () => {
     setLoading(true);
+    setSyncError(null);
     try {
-      const res = await fetch('/api/overview');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const queryParams = new URLSearchParams();
+      if (selectedSector !== 'All') queryParams.append('sector', selectedSector);
+      if (selectedYear !== 'All') queryParams.append('year', selectedYear);
+      if (searchQuery.trim() !== '') queryParams.append('search', searchQuery.trim());
+
+      const url = `/api/overview${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to synchronize with server`);
       const result = await res.json();
       if (result.chartData && Array.isArray(result.chartData) && result.chartData.length > 0) {
         setData(result.chartData);
@@ -277,6 +286,7 @@ function App() {
           cagr: result.kpis.cagr || DEFAULT_KPIS.cagr
         });
       }
+      setLastSyncTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
       if (result.status === 'live') {
         setDbStatus('connected');
         setStatusMessage('bluestock_dw live database');
@@ -284,9 +294,12 @@ function App() {
         setDbStatus('cached');
         setStatusMessage('bluestock_dw cached warehouse');
       }
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown network error';
+      console.warn('[PowerBI Sync] API request failed, gracefully falling back to warehouse cache:', msg);
       setDbStatus('cached');
       setStatusMessage('Local Warehouse Cache (Nifty 100)');
+      setSyncError('Live database synchronization is offline. Serving local warehouse cache.');
     } finally {
       setLoading(false);
     }
@@ -295,6 +308,17 @@ function App() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Polling loop for auto-refresh
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchData();
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, selectedSector, selectedYear]);
 
   const navItems = [
     { name: 'Overview', icon: LayoutDashboard },
@@ -381,6 +405,32 @@ function App() {
             </button>
           </div>
         </header>
+
+        {syncError && (
+          <div style={{
+            background: 'rgba(234, 179, 8, 0.1)',
+            border: '1px solid rgba(234, 179, 8, 0.3)',
+            borderRadius: '10px',
+            padding: '10px 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '16px',
+            fontSize: '0.85rem',
+            color: '#fbbf24'
+          }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={16} /> {syncError}
+            </span>
+            <button
+              onClick={() => setSyncError(null)}
+              style={{ background: 'transparent', border: 'none', color: '#fbbf24', cursor: 'pointer', padding: '4px' }}
+              title="Dismiss notification"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         {/* Slicer & Filters Bar */}
         <div className="filter-bar animate-fade-in" style={{ animationDelay: '0.05s' }}>
@@ -867,7 +917,7 @@ function App() {
             <div className="setting-row">
               <div className="setting-info">
                 <h3>Auto-Refresh Analytics</h3>
-                <p>Periodically poll warehouse tables for new corporate disclosures</p>
+                <p>Periodically poll warehouse tables for new corporate disclosures (Last Synced: {lastSyncTime})</p>
               </div>
               <label className="toggle-switch">
                 <input
