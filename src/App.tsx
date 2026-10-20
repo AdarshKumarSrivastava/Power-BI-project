@@ -1,4 +1,4 @@
-import { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
+import { useState, useEffect, useCallback, Component, ErrorInfo, ReactNode } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, Legend, LineChart, Line, Cell
@@ -262,7 +262,7 @@ function App() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setSyncError(null);
     try {
@@ -303,7 +303,8 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSector, selectedYear, searchQuery]);
 
   useEffect(() => {
     fetchData();
@@ -764,7 +765,7 @@ function App() {
               <h3 className="chart-title">Sector Debt Exposure & Interest Coverage</h3>
               <div style={{ flex: 1, width: '100%', minHeight: '320px' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={SECTOR_DATA}>
+                  <BarChart data={filteredSectors}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis dataKey="name" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" />
@@ -804,7 +805,7 @@ function App() {
               <h3 className="chart-title">Dividend & Retained Earnings Share</h3>
               <div style={{ flex: 1, width: '100%', minHeight: '300px' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data}>
+                  <AreaChart data={filteredData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                     <XAxis dataKey="name" stroke="#94a3b8" />
                     <YAxis stroke="#94a3b8" />
