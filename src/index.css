@@ -114,6 +114,12 @@ body {
   box-shadow: inset 4px 0 0 var(--accent-blue);
 }
 
+.nav-item:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
 /* React Settings UI  flx and width*/
 .settings-container {
   display: flex;
@@ -456,6 +462,43 @@ input:checked+.toggle-slider:before {
   .chart-card {
     min-height: 300px;
     padding: 16px;
+  }
+
+  .filter-bar {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .filter-select, .filter-input {
+    width: 100%;
+    font-size: 0.8rem;
+  }
+}
+
+/* Accessibility: reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .glass-panel:hover {
+    transform: none;
+  }
+
+  .nav-item:hover {
+    transform: none;
+  }
+
+  .chart-card:hover {
+    animation: none;
   }
 }
 
