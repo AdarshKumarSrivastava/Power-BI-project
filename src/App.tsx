@@ -285,10 +285,12 @@ function App() {
         headers = ["Symbol", "Sector", "Altman_Z_Score", "Piotroski_F_Score", "RoE", "Debt_Equity", "Risk_Rating"];
         rows = filteredCompanies.map(c => [c.symbol, c.sector, c.altmanZ, c.piotroskiF, c.roe, c.debtEquity, c.status]);
       } else if (activeTab === 'Data Sources') {
-        headers = ["Table_Name", "Type", "Estimated_Rows", "Description"];
-        rows = STAR_SCHEMA_TABLES.map(t => [t.name, t.type, t.rows, t.desc]);
+        headers = ["Table_or_Measure", "Category_or_Type", "Rows_or_Formula", "Description"];
+        const tableRows: (string | number)[][] = STAR_SCHEMA_TABLES.map(t => [t.name, t.type, t.rows, t.desc]);
+        const daxRows: (string | number)[][] = filteredDaxMeasures.map(m => [m.name, m.category, m.formula.replace(/\n/g, ' '), m.description]);
+        rows = [...tableRows, ...daxRows];
       } else {
-        // Overview, Financial Analytics, Debt & Leverage, Dividend Returns
+        // Overview, Financial Analytics, Debt & Leverage, Dividend Returns, Settings
         headers = ["Year", "Revenue_Crores", "Net_Profit_Crores", "Active_Portfolios"];
         rows = filteredData.map(d => [d.name, d.revenue, d.profit, d.activeUsers]);
       }
