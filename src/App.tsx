@@ -7,7 +7,7 @@ import {
   LayoutDashboard, TrendingUp,
   PieChart, Settings, Database, Briefcase, ShieldCheck, DollarSign,
   Layers, CheckCircle2, RefreshCw, Filter, X, Download, Code2, Copy, Check,
-  AlertTriangle
+  AlertTriangle, Sun, Moon
 } from 'lucide-react';
 
 interface ErrorBoundaryProps {
@@ -245,6 +245,15 @@ function App() {
   const [lastSyncTime, setLastSyncTime] = useState<string>(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('pbi_dashboard_theme') as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('pbi_dashboard_theme', theme);
+  }, [theme]);
+
   // Slicer Filtered Datasets
   const filteredData = data.filter(d => selectedYear === 'All' || d.name === selectedYear);
   const filteredSectors = SECTOR_DATA.filter(s => selectedSector === 'All' || s.name === selectedSector);
@@ -431,6 +440,25 @@ function App() {
             <p className="header-subtitle">Nifty 100 Financial Intelligence connected to Star Schema Data Warehouse</p>
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid var(--border-light)',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {theme === 'dark' ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} color="#3b82f6" />}
+            </button>
             <button
               onClick={exportToCSV}
               style={{
@@ -1023,11 +1051,16 @@ function App() {
 
             <div className="setting-row">
               <div className="setting-info">
-                <h3>Glassmorphism UI Theme</h3>
-                <p>Ultra-modern blurred glass acrylic aesthetics with neon accents</p>
+                <h3>Light / Dark Mode Theme</h3>
+                <p>Toggle between Dark Neon Glassmorphism and Crisp Clean Light Mode (Current: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'})</p>
               </div>
               <label className="toggle-switch">
-                <input type="checkbox" defaultChecked />
+                <input
+                  type="checkbox"
+                  checked={theme === 'light'}
+                  onChange={(e) => setTheme(e.target.checked ? 'light' : 'dark')}
+                  aria-label="Toggle light and dark theme mode"
+                />
                 <span className="toggle-slider"></span>
               </label>
             </div>
