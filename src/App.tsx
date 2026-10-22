@@ -138,16 +138,64 @@ const DAX_MEASURES: DaxMeasure[] = [
     description: "Calculates the 3-Year Compound Annual Growth Rate for company revenues."
   },
   {
+    name: "5Y Sales CAGR",
+    category: "Growth Analytics",
+    formula: "5Y Sales CAGR = \nCALCULATE(AVERAGE(fact_analysis[compounded_sales_growth_pct]), fact_analysis[period_label] = \"5Y\")",
+    description: "Measures 5-year sustained top-line revenue expansion across market cycles."
+  },
+  {
+    name: "5Y Profit CAGR",
+    category: "Growth Analytics",
+    formula: "5Y Profit CAGR = \nCALCULATE(AVERAGE(fact_analysis[compounded_profit_growth_pct]), fact_analysis[period_label] = \"5Y\")",
+    description: "Multi-year earnings compounding rate indicating underlying profitability momentum."
+  },
+  {
+    name: "Sales Growth Rate YoY",
+    category: "Growth Analytics",
+    formula: "Sales Growth Rate YoY = \nVAR CurrentSales = SUM(fact_profit_loss[sales])\nVAR PreviousSales = CALCULATE(SUM(fact_profit_loss[sales]), FILTER(ALL(dim_year), dim_year[fiscal_year] = MAX(dim_year[fiscal_year]) - 1))\nRETURN DIVIDE(CurrentSales - PreviousSales, PreviousSales) * 100",
+    description: "Year-over-year revenue percentage growth rate comparing consecutive fiscal years."
+  },
+  {
+    name: "Consistent Growers Flag",
+    category: "Growth Analytics",
+    formula: "Consistent Growers Flag = \nVAR CurrentCompany = SELECTEDVALUE(dim_company[symbol])\nVAR YearsWithGrowth = COUNTROWS(FILTER(SUMMARIZE(FILTER(ALL(fact_profit_loss), fact_profit_loss[symbol] = CurrentCompany), fact_profit_loss[year_label], \"YoYGrowth\", [Sales Growth Rate YoY]), [YoYGrowth] > 0))\nRETURN IF(YearsWithGrowth >= 5, 1, 0)",
+    description: "Flags elite companies demonstrating continuous uninterrupted positive revenue growth for 5+ years."
+  },
+  {
     name: "Net Profit Margin %",
     category: "Profitability",
     formula: "Net Profit Margin % = \nDIVIDE([Total Net Profit], [Total Sales], 0) * 100",
     description: "Percentage of total top-line revenue converted into bottom-line profits."
   },
   {
-    name: "Consistent Dividend Payers Flag",
-    category: "Dividend & Returns",
-    formula: "Consistent Dividend Payers Flag = \nVAR PayoutYears = CALCULATE(DISTINCTCOUNT(fact_cash_flow[year_label]), fact_cash_flow[dividend_paid] < 0)\nRETURN IF(PayoutYears >= 5, 1, 0)",
-    description: "Flags companies maintaining consecutive uninterrupted dividend distributions for 5+ years."
+    name: "Return on Capital Employed (RoCE)",
+    category: "Capital Efficiency",
+    formula: "RoCE % = \nVAR CapitalEmployed = [Total Assets] - [Current Liabilities]\nRETURN DIVIDE([EBIT], CapitalEmployed, 0) * 100",
+    description: "Measures pre-tax operating efficiency relative to long-term capital deployed."
+  },
+  {
+    name: "Average ROE",
+    category: "Capital Efficiency",
+    formula: "Average ROE = \nAVERAGE(fact_analysis[roe_pct])",
+    description: "Return on Equity indicating how effectively management generates income from net assets."
+  },
+  {
+    name: "Sector Avg OPM%",
+    category: "Profitability",
+    formula: "Sector Avg OPM% = \nAVERAGE(fact_profit_loss[opm_pct])",
+    description: "Operating Profit Margin benchmark aggregated across peer companies in the same sector."
+  },
+  {
+    name: "Cash Conversion Ratio",
+    category: "Cash Flow",
+    formula: "Cash Conversion Ratio = \nDIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[net_profit]), 0)",
+    description: "Evaluates the proportion of reported net profit effectively realized as operating cash."
+  },
+  {
+    name: "Free Cash Flow",
+    category: "Cash Flow",
+    formula: "Free Cash Flow = \nSUM(fact_cash_flow[free_cash_flow])",
+    description: "Total discretionary cash generated after accounting for capital expenditures."
   },
   {
     name: "Altman Z-Score",
@@ -156,16 +204,28 @@ const DAX_MEASURES: DaxMeasure[] = [
     description: "Statistical credit-strength measure used to assess bankruptcy and insolvency risk."
   },
   {
+    name: "Health Score",
+    category: "Health Scorecard",
+    formula: "Health Score = \nAVERAGE(fact_ml_scores[overall_score])",
+    description: "Ensemble multi-factor ML fundamental health score rated on a scale of 0 to 100."
+  },
+  {
     name: "Net Debt to Equity",
     category: "Debt & Leverage",
     formula: "Net Debt to Equity = \nVAR NetDebt = [Total Borrowings] - [Cash & Bank Balances]\nRETURN DIVIDE(NetDebt, [Total Shareholders Equity], 0)",
     description: "Evaluates leverage and solvency by assessing net indebtedness against shareholder net worth."
   },
   {
-    name: "Return on Capital Employed (RoCE)",
-    category: "Capital Efficiency",
-    formula: "RoCE % = \nVAR CapitalEmployed = [Total Assets] - [Current Liabilities]\nRETURN DIVIDE([EBIT], CapitalEmployed, 0) * 100",
-    description: "Measures pre-tax operating efficiency relative to long-term capital deployed."
+    name: "Interest Coverage",
+    category: "Debt & Leverage",
+    formula: "Interest Coverage = \nAVERAGE(fact_profit_loss[interest_coverage])",
+    description: "Ability to service outstanding corporate debt through operating earnings (EBIT)."
+  },
+  {
+    name: "Consistent Dividend Payers Flag",
+    category: "Dividend & Returns",
+    formula: "Consistent Dividend Payers Flag = \nVAR CurrentCompany = SELECTEDVALUE(dim_company[symbol])\nVAR YearsWithDividends = COUNTROWS(FILTER(ALL(fact_profit_loss), fact_profit_loss[symbol] = CurrentCompany && fact_profit_loss[dividend_payout_pct] > 0))\nRETURN IF(YearsWithDividends >= 5, 1, 0)",
+    description: "Flags companies maintaining consecutive uninterrupted dividend distributions for 5+ years."
   }
 ];
 
@@ -181,12 +241,15 @@ function App() {
   const [selectedYear, setSelectedYear] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [daxCategoryFilter, setDaxCategoryFilter] = useState('All');
   const [lastSyncTime, setLastSyncTime] = useState<string>(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
   const [syncError, setSyncError] = useState<string | null>(null);
 
   // Slicer Filtered Datasets
   const filteredData = data.filter(d => selectedYear === 'All' || d.name === selectedYear);
   const filteredSectors = SECTOR_DATA.filter(s => selectedSector === 'All' || s.name === selectedSector);
+  const filteredDaxMeasures = DAX_MEASURES.filter(m => daxCategoryFilter === 'All' || m.category === daxCategoryFilter);
+  const daxCategories = ['All', ...Array.from(new Set(DAX_MEASURES.map(m => m.category)))];
   const filteredCompanies = HEALTH_COMPANIES.filter(c => {
     const matchesSector = selectedSector === 'All' || c.sector === selectedSector;
     const matchesSearch = searchQuery === '' || c.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || c.sector.toLowerCase().includes(searchQuery.toLowerCase());
@@ -871,8 +934,29 @@ function App() {
                 Pre-programmed analytical business logic embedded in Power BI <code>_KeyMeasures</code> table.
               </p>
 
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                {daxCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setDaxCategoryFilter(cat)}
+                    className="filter-btn"
+                    style={{
+                      background: daxCategoryFilter === cat ? 'var(--accent-purple)' : 'rgba(30, 41, 59, 0.6)',
+                      color: daxCategoryFilter === cat ? '#fff' : 'var(--text-secondary)',
+                      borderColor: daxCategoryFilter === cat ? 'var(--accent-purple)' : 'rgba(255, 255, 255, 0.1)',
+                      fontSize: '0.8rem',
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {cat} {cat === 'All' ? `(${DAX_MEASURES.length})` : `(${DAX_MEASURES.filter(m => m.category === cat).length})`}
+                  </button>
+                ))}
+              </div>
+
               <div className="dax-grid">
-                {DAX_MEASURES.map((m, idx) => (
+                {filteredDaxMeasures.map((m, idx) => (
                   <div key={m.name} className="dax-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
                       <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{m.name}</h4>
