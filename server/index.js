@@ -129,13 +129,35 @@ const fallbackHealthScores = [
   { symbol: "ITC", sector: "FMCG", altmanZ: 8.45, piotroskiF: 9, mlScore: 95, riskLevel: "Safe" }
 ];
 
-// Health Check
+// Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
+  const mem = process.memoryUsage();
   res.json({
     status: 'ok',
-    uptime: process.uptime(),
+    uptimeSeconds: Math.floor(process.uptime()),
+    nodeVersion: process.version,
+    memoryUsageMB: {
+      rss: Math.round(mem.rss / 1024 / 1024),
+      heapTotal: Math.round(mem.heapTotal / 1024 / 1024),
+      heapUsed: Math.round(mem.heapUsed / 1024 / 1024)
+    },
     port: port,
     hasPool: Boolean(pool),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Meta Information Endpoint
+app.get('/api/meta', (req, res) => {
+  res.json({
+    service: 'BlueStock Financial Intelligence API',
+    version: '1.2.0',
+    endpoints: [
+      { path: '/api/health', method: 'GET', description: 'System health, uptime, and memory diagnostics' },
+      { path: '/api/overview', method: 'GET', description: 'Financial overview and KPI aggregates' },
+      { path: '/api/sectors', method: 'GET', description: 'Sector breakdown with search/filter' },
+      { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' }
+    ],
     timestamp: new Date().toISOString()
   });
 });
