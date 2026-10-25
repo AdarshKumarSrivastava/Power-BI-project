@@ -245,6 +245,8 @@ function App() {
   const [lastSyncTime, setLastSyncTime] = useState<string>(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('pbi_dashboard_theme') as 'dark' | 'light') || 'dark';
   });
@@ -329,7 +331,7 @@ function App() {
     }
   };
 
-  const copyToClipboard = async (text: string, index: number) => {
+  const copyToClipboard = async (text: string, index: number, name?: string) => {
     try {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
@@ -345,7 +347,9 @@ function App() {
         document.body.removeChild(textArea);
       }
       setCopiedIndex(index);
+      setToastMessage(name ? `Copied DAX measure: ${name}` : 'Copied to clipboard');
       setTimeout(() => setCopiedIndex(null), 2000);
+      setTimeout(() => setToastMessage(null), 3000);
     } catch (err) {
       console.warn('[PowerBI UI] Clipboard copy failed:', err);
     }
@@ -1010,7 +1014,7 @@ function App() {
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '8px' }}>{m.description}</p>
                     <pre className="dax-code">{m.formula}</pre>
                     <button
-                      onClick={() => copyToClipboard(m.formula, idx)}
+                      onClick={() => copyToClipboard(m.formula, idx, m.name)}
                       className="filter-btn"
                       style={{ alignSelf: 'flex-start', marginTop: 'auto', fontSize: '0.75rem', padding: '6px 12px' }}
                     >
@@ -1097,6 +1101,14 @@ function App() {
           </div>
         )}
         </ErrorBoundary>
+
+        {/* Global Toast Notification */}
+        {toastMessage && (
+          <div className="toast-notification" role="status" aria-live="polite">
+            <CheckCircle2 size={16} color="var(--success)" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
       </main>
     </div>
   );
