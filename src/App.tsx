@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Component, ErrorInfo, ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, Component, ErrorInfo, ReactNode } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, Legend, LineChart, Line, Cell
@@ -254,16 +254,31 @@ function App() {
     localStorage.setItem('pbi_dashboard_theme', theme);
   }, [theme]);
 
-  // Slicer Filtered Datasets
-  const filteredData = data.filter(d => selectedYear === 'All' || d.name === selectedYear);
-  const filteredSectors = SECTOR_DATA.filter(s => selectedSector === 'All' || s.name === selectedSector);
-  const filteredDaxMeasures = DAX_MEASURES.filter(m => daxCategoryFilter === 'All' || m.category === daxCategoryFilter);
-  const daxCategories = ['All', ...Array.from(new Set(DAX_MEASURES.map(m => m.category)))];
-  const filteredCompanies = HEALTH_COMPANIES.filter(c => {
-    const matchesSector = selectedSector === 'All' || c.sector === selectedSector;
-    const matchesSearch = searchQuery === '' || c.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || c.sector.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSector && matchesSearch;
-  });
+  // Slicer Filtered Datasets memoized for optimal performance
+  const filteredData = useMemo(() => {
+    return data.filter(d => selectedYear === 'All' || d.name === selectedYear);
+  }, [data, selectedYear]);
+
+  const filteredSectors = useMemo(() => {
+    return SECTOR_DATA.filter(s => selectedSector === 'All' || s.name === selectedSector);
+  }, [selectedSector]);
+
+  const filteredDaxMeasures = useMemo(() => {
+    return DAX_MEASURES.filter(m => daxCategoryFilter === 'All' || m.category === daxCategoryFilter);
+  }, [daxCategoryFilter]);
+
+  const daxCategories = useMemo(() => {
+    return ['All', ...Array.from(new Set(DAX_MEASURES.map(m => m.category)))];
+  }, []);
+
+  const filteredCompanies = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return HEALTH_COMPANIES.filter(c => {
+      const matchesSector = selectedSector === 'All' || c.sector === selectedSector;
+      const matchesSearch = !q || c.symbol.toLowerCase().includes(q) || c.sector.toLowerCase().includes(q);
+      return matchesSector && matchesSearch;
+    });
+  }, [selectedSector, searchQuery]);
 
   const escapeCsvCell = (val: string | number | undefined | null): string => {
     const str = String(val ?? '');
