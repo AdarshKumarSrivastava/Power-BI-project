@@ -598,6 +598,39 @@ function App() {
           )}
         </div>
 
+        {/* Global Dataset Metric Badges */}
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          flexWrap: 'wrap',
+          marginBottom: '20px',
+          fontSize: '0.8rem',
+          color: 'var(--text-secondary)'
+        }}>
+          <div className="glass-panel" style={{ padding: '6px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Filtered Companies:</span>
+            <strong style={{ color: 'var(--accent-blue)' }}>{filteredCompanies.length}</strong>
+          </div>
+          <div className="glass-panel" style={{ padding: '6px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Sectors In Scope:</span>
+            <strong style={{ color: 'var(--accent-purple)' }}>{filteredSectors.length}</strong>
+          </div>
+          <div className="glass-panel" style={{ padding: '6px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Average Altman Z-Score:</span>
+            <strong style={{ color: 'var(--success)' }}>
+              {filteredCompanies.length > 0 
+                ? (filteredCompanies.reduce((acc, c) => acc + c.altmanZ, 0) / filteredCompanies.length).toFixed(2)
+                : 'N/A'}
+            </strong>
+          </div>
+          <div className="glass-panel" style={{ padding: '6px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: 'var(--text-muted)' }}>High-Health Safe Firms:</span>
+            <strong style={{ color: '#10b981' }}>
+              {filteredCompanies.filter(c => c.status === 'Safe').length}
+            </strong>
+          </div>
+        </div>
+
         <ErrorBoundary key={activeTab}>
           {/* Overview Tab */}
           {activeTab === 'Overview' && (
