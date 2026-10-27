@@ -156,8 +156,40 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/health', method: 'GET', description: 'System health, uptime, and memory diagnostics' },
       { path: '/api/overview', method: 'GET', description: 'Financial overview and KPI aggregates' },
       { path: '/api/sectors', method: 'GET', description: 'Sector breakdown with search/filter' },
-      { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' }
+      { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
+      { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' }
     ],
+    timestamp: new Date().toISOString()
+  });
+});
+
+// DAX Measures Repository Endpoint
+app.get('/api/dax-measures', (req, res) => {
+  const { category, search } = req.query;
+  const measures = [
+    { name: "3Y Sales CAGR", category: "Growth Analytics", formula: "3Y Sales CAGR = VAR CurrentSales = [Total Sales] RETURN ((CurrentSales / Sales3Y) ^ (1/3)) - 1" },
+    { name: "5Y Sales CAGR", category: "Growth Analytics", formula: "5Y Sales CAGR = AVERAGE(fact_analysis[compounded_sales_growth_pct])" },
+    { name: "Net Profit Margin %", category: "Profitability", formula: "Net Profit Margin % = DIVIDE([Total Net Profit], [Total Sales], 0) * 100" },
+    { name: "RoCE %", category: "Capital Efficiency", formula: "RoCE % = DIVIDE([EBIT], [Capital Employed], 0) * 100" },
+    { name: "Altman Z-Score", category: "Health Scorecard", formula: "1.2*(WC/TA) + 1.4*(RE/TA) + 3.3*(EBIT/TA) + 0.6*(MCap/TL) + 0.999*(Sales/TA)" },
+    { name: "Piotroski 9-Point Score", category: "Health Scorecard", formula: "F_ROA + F_CFO + F_Accrual + F_Margin + F_Leverage + [Other Signals]" },
+    { name: "DuPont 3-Stage ROE", category: "Capital Efficiency", formula: "NetProfitMargin * AssetTurnover * FinancialLeverage" },
+    { name: "Free Cash Flow", category: "Cash Flow", formula: "SUM(fact_cash_flow[free_cash_flow])" },
+    { name: "Net Debt to Equity", category: "Debt & Leverage", formula: "DIVIDE([Total Borrowings] - [Cash Balances], [Shareholders Equity], 0)" }
+  ];
+
+  let filtered = measures;
+  if (category && category !== 'All') {
+    filtered = filtered.filter(m => m.category.toLowerCase() === String(category).toLowerCase());
+  }
+  if (search && String(search).trim() !== '') {
+    const q = String(search).toLowerCase();
+    filtered = filtered.filter(m => m.name.toLowerCase().includes(q) || m.category.toLowerCase().includes(q));
+  }
+
+  res.json({
+    measures: filtered,
+    totalCount: filtered.length,
     timestamp: new Date().toISOString()
   });
 });
