@@ -254,6 +254,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [daxCategoryFilter, setDaxCategoryFilter] = useState('All');
+  const [daxSearchQuery, setDaxSearchQuery] = useState('');
   const [lastSyncTime, setLastSyncTime] = useState<string>(() => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
   const [syncError, setSyncError] = useState<string | null>(null);
 
@@ -278,8 +279,13 @@ function App() {
   }, [selectedSector]);
 
   const filteredDaxMeasures = useMemo(() => {
-    return DAX_MEASURES.filter(m => daxCategoryFilter === 'All' || m.category === daxCategoryFilter);
-  }, [daxCategoryFilter]);
+    const q = daxSearchQuery.trim().toLowerCase();
+    return DAX_MEASURES.filter(m => {
+      const matchesCategory = daxCategoryFilter === 'All' || m.category === daxCategoryFilter;
+      const matchesSearch = !q || m.name.toLowerCase().includes(q) || m.formula.toLowerCase().includes(q) || m.description.toLowerCase().includes(q);
+      return matchesCategory && matchesSearch;
+    });
+  }, [daxCategoryFilter, daxSearchQuery]);
 
   const daxCategories = useMemo(() => {
     return ['All', ...Array.from(new Set(DAX_MEASURES.map(m => m.category)))];
@@ -1027,6 +1033,32 @@ function App() {
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '16px' }}>
                 Pre-programmed analytical business logic embedded in Power BI <code>_KeyMeasures</code> table.
               </p>
+
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ flex: 1, minWidth: '220px' }}>
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Search DAX measures (e.g. CAGR, margin, Piotroski, ROE)..."
+                    value={daxSearchQuery}
+                    onChange={(e) => setDaxSearchQuery(e.target.value)}
+                    aria-label="Search DAX measures"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                {daxSearchQuery && (
+                  <button
+                    className="filter-btn filter-btn-secondary"
+                    onClick={() => setDaxSearchQuery('')}
+                    style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                  >
+                    <X size={14} /> Clear
+                  </button>
+                )}
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  Showing <strong>{filteredDaxMeasures.length}</strong> of <strong>{DAX_MEASURES.length}</strong> measures
+                </span>
+              </div>
 
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
                 {daxCategories.map((cat) => (
