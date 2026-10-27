@@ -226,6 +226,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Dividend & Returns",
     formula: "Consistent Dividend Payers Flag = \nVAR CurrentCompany = SELECTEDVALUE(dim_company[symbol])\nVAR YearsWithDividends = COUNTROWS(FILTER(ALL(fact_profit_loss), fact_profit_loss[symbol] = CurrentCompany && fact_profit_loss[dividend_payout_pct] > 0))\nRETURN IF(YearsWithDividends >= 5, 1, 0)",
     description: "Flags companies maintaining consecutive uninterrupted dividend distributions for 5+ years."
+  },
+  {
+    name: "Piotroski 9-Point Score",
+    category: "Health Scorecard",
+    formula: "Piotroski Score = \nVAR F_ROA = IF([ROA] > 0, 1, 0)\nVAR F_CFO = IF([Operating Cash Flow] > 0, 1, 0)\nVAR F_Accrual = IF([Operating Cash Flow] > [Net Profit], 1, 0)\nVAR F_Margin = IF([Gross Margin %] > [Prev Gross Margin %], 1, 0)\nVAR F_Leverage = IF([Debt to Assets] < [Prev Debt to Assets], 1, 0)\nRETURN F_ROA + F_CFO + F_Accrual + F_Margin + F_Leverage + [Other Piotroski Signals]",
+    description: "Nine-point discrete composite scorecard determining fundamental corporate accounting strength."
+  },
+  {
+    name: "DuPont 3-Stage ROE Decomposition",
+    category: "Capital Efficiency",
+    formula: "DuPont ROE = \nVAR NetProfitMargin = DIVIDE([Net Profit], [Total Sales], 0)\nVAR AssetTurnover = DIVIDE([Total Sales], [Total Assets], 0)\nVAR FinancialLeverage = DIVIDE([Total Assets], [Total Equity], 0)\nRETURN NetProfitMargin * AssetTurnover * FinancialLeverage",
+    description: "Breaks down Return on Equity into operating efficiency, asset productivity, and financial leverage."
   }
 ];
 
