@@ -349,6 +349,28 @@ function App() {
     }
   };
 
+  const exportAllDaxMeasures = () => {
+    try {
+      const content = filteredDaxMeasures.map(m => {
+        return `// ==========================================\n// Name: ${m.name}\n// Category: ${m.category}\n// Description: ${m.description}\n// ==========================================\n${m.formula}\n\n`;
+      }).join('\n');
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Nifty100_DAX_Measures_${new Date().toISOString().slice(0, 10)}.dax`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setToastMessage(`Exported ${filteredDaxMeasures.length} DAX measures`);
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err) {
+      console.error('[PowerBI UI] Failed to export DAX measures:', err);
+    }
+  };
+
   const copyToClipboard = async (text: string, index: number, name?: string) => {
     try {
       if (navigator?.clipboard?.writeText) {
@@ -1055,6 +1077,14 @@ function App() {
                     <X size={14} /> Clear
                   </button>
                 )}
+                <button
+                  className="filter-btn filter-btn-primary"
+                  onClick={exportAllDaxMeasures}
+                  style={{ padding: '6px 14px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  title="Export filtered DAX measures to .dax file"
+                >
+                  <Download size={14} /> Export .DAX ({filteredDaxMeasures.length})
+                </button>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                   Showing <strong>{filteredDaxMeasures.length}</strong> of <strong>{DAX_MEASURES.length}</strong> measures
                 </span>
