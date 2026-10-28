@@ -869,6 +869,16 @@
             "name": "ROCE",
             "expression": "AVERAGE(fact_analysis[roe_pct])",
             "formatString": "0.00%"
+          },
+          {
+            "name": "Piotroski 9-Point Score",
+            "expression": "VAR F_ROA = IF([ROA] > 0, 1, 0) VAR F_CFO = IF([Free Cash Flow] > 0, 1, 0) VAR F_Accrual = IF([Free Cash Flow] > [Total Net Profit], 1, 0) RETURN F_ROA + F_CFO + F_Accrual",
+            "formatString": "0"
+          },
+          {
+            "name": "DuPont 3-Stage ROE",
+            "expression": "VAR NetProfitMargin = DIVIDE([Total Net Profit], [Total Revenue], 0) VAR AssetTurnover = DIVIDE([Total Revenue], SUM(fact_balance_sheet[total_assets]), 0) VAR FinancialLeverage = DIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0) RETURN NetProfitMargin * AssetTurnover * FinancialLeverage",
+            "formatString": "0.00%"
           }
         ]
       }
