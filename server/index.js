@@ -157,10 +157,69 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/overview', method: 'GET', description: 'Financial overview and KPI aggregates' },
       { path: '/api/sectors', method: 'GET', description: 'Sector breakdown with search/filter' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
-      { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' }
+      { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
+});
+
+// Universal Dataset Export Endpoint (JSON or CSV)
+app.get('/api/export', (req, res) => {
+  try {
+    const { dataset = 'dax', format = 'json' } = req.query;
+
+    let payload = [];
+    if (dataset === 'sectors') {
+      payload = fallbackSectors;
+    } else if (dataset === 'health') {
+      payload = fallbackHealthScores;
+    } else if (dataset === 'overview') {
+      payload = fallbackOverview.chartData;
+    } else {
+      // default: dax measures catalog
+      payload = [
+        { name: "3Y Sales CAGR", category: "Growth Analytics", formula: "3Y Sales CAGR = VAR CurrentSales = [Total Sales] RETURN ((CurrentSales / Sales3Y) ^ (1/3)) - 1" },
+        { name: "5Y Sales CAGR", category: "Growth Analytics", formula: "5Y Sales CAGR = AVERAGE(fact_analysis[compounded_sales_growth_pct])" },
+        { name: "Net Profit Margin %", category: "Profitability", formula: "Net Profit Margin % = DIVIDE([Total Net Profit], [Total Sales], 0) * 100" },
+        { name: "RoCE %", category: "Capital Efficiency", formula: "RoCE % = DIVIDE([EBIT], [Capital Employed], 0) * 100" },
+        { name: "Altman Z-Score", category: "Health Scorecard", formula: "1.2*(WC/TA) + 1.4*(RE/TA) + 3.3*(EBIT/TA) + 0.6*(MCap/TL) + 0.999*(Sales/TA)" },
+        { name: "Piotroski 9-Point Score", category: "Health Scorecard", formula: "F_ROA + F_CFO + F_Accrual + F_Margin + F_Leverage + [Other Signals]" },
+        { name: "DuPont 3-Stage ROE", category: "Capital Efficiency", formula: "NetProfitMargin * AssetTurnover * FinancialLeverage" },
+        { name: "Free Cash Flow", category: "Cash Flow", formula: "SUM(fact_cash_flow[free_cash_flow])" },
+        { name: "Net Debt to Equity", category: "Debt & Leverage", formula: "DIVIDE([Total Borrowings] - [Cash Balances], [Shareholders Equity], 0)" }
+      ];
+    }
+
+    if (String(format).toLowerCase() === 'csv') {
+      if (!payload || payload.length === 0) {
+        return res.header('Content-Type', 'text/csv').send('');
+      }
+      const headers = Object.keys(payload[0]);
+      const csvRows = [
+        headers.join(','),
+        ...payload.map(row =>
+          headers.map(field => {
+            const val = row[field] ?? '';
+            const escaped = String(val).replace(/"/g, '""');
+            return `"${escaped}"`;
+          }).join(',')
+        )
+      ];
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${dataset}_export_${Date.now()}.csv"`);
+      return res.send(csvRows.join('\r\n'));
+    }
+
+    res.json({
+      dataset,
+      recordCount: payload.length,
+      exportedAt: new Date().toISOString(),
+      data: payload
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to export dataset', message: err.message });
+  }
 });
 
 // DAX Measures Repository Endpoint
