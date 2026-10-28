@@ -80,6 +80,7 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/sectors` | Sector taxonomy with revenue, PE ratios, and margin aggregates. Supports `?sector=` and `?search=`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax|sectors|health|overview` and `?format=json|csv`. |
 
 ---
 
