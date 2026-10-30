@@ -96,12 +96,12 @@ const DEFAULT_KPIS: KpiData = {
 };
 
 const SECTOR_DATA = [
-  { name: "IT", revenue: 98500, margin: 21.5, pe: 28.4, color: "#3b82f6" },
-  { name: "Banking", revenue: 135000, margin: 18.2, pe: 16.8, color: "#10b981" },
-  { name: "Automobile", revenue: 54000, margin: 11.4, pe: 24.1, color: "#f59e0b" },
-  { name: "Pharma", revenue: 42000, margin: 19.8, pe: 32.5, color: "#8b5cf6" },
-  { name: "Energy", revenue: 112000, margin: 14.6, pe: 12.2, color: "#ec4899" },
-  { name: "FMCG", revenue: 68000, margin: 23.1, pe: 41.6, color: "#14b8a6" }
+  { name: "IT", revenue: 98500, margin: 21.5, pe: 28.4, debtEquity: 0.06, interestCoverage: 32.5, divYield: 2.1, payoutRatio: 48.0, color: "#3b82f6" },
+  { name: "Banking", revenue: 135000, margin: 18.2, pe: 16.8, debtEquity: 0.83, interestCoverage: 4.8, divYield: 1.4, payoutRatio: 22.5, color: "#10b981" },
+  { name: "Automobile", revenue: 54000, margin: 11.4, pe: 24.1, debtEquity: 0.38, interestCoverage: 7.2, divYield: 1.2, payoutRatio: 26.0, color: "#f59e0b" },
+  { name: "Pharma", revenue: 42000, margin: 19.8, pe: 32.5, debtEquity: 0.08, interestCoverage: 18.4, divYield: 0.9, payoutRatio: 21.0, color: "#8b5cf6" },
+  { name: "Energy", revenue: 112000, margin: 14.6, pe: 12.2, debtEquity: 0.42, interestCoverage: 6.9, divYield: 3.8, payoutRatio: 38.5, color: "#ec4899" },
+  { name: "FMCG", revenue: 68000, margin: 23.1, pe: 41.6, debtEquity: 0.02, interestCoverage: 41.0, divYield: 2.6, payoutRatio: 62.0, color: "#14b8a6" }
 ];
 
 const HEALTH_COMPANIES = [
@@ -254,6 +254,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Debt & Leverage",
     formula: "Cash Flow to Debt Ratio = \nDIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[borrowings]), 0)",
     description: "Evaluates corporate leverage coverage and debt redemption capability from operating cash flow generation."
+  },
+  {
+    name: "Dividend Coverage Ratio",
+    category: "Dividend & Returns",
+    formula: "Dividend Coverage Ratio = \nDIVIDE(SUM(fact_profit_loss[net_profit]), SUM(fact_profit_loss[sales]) * (AVERAGE(fact_profit_loss[dividend_payout_pct]) / 100), 0)",
+    description: "Evaluates the capacity of net annual profits to cover annual dividend commitments."
+  },
+  {
+    name: "Free Cash Flow Yield %",
+    category: "Valuation",
+    formula: "Free Cash Flow Yield % = \nDIVIDE([Free Cash Flow], SUM(dim_company[market_cap_crores]), 0) * 100",
+    description: "Compares discretionary free cash flow to enterprise market capitalization."
   }
 ];
 
@@ -1052,8 +1064,8 @@ function App() {
                     <YAxis stroke="#94a3b8" />
                     <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderRadius: '12px' }} />
                     <Legend />
-                    <Bar dataKey="margin" name="Operating Margin %" fill="#10b981" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="pe" name="Valuation Multiplier (P/E)" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="debtEquity" name="Debt to Equity Ratio" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="interestCoverage" name="Interest Coverage (x)" fill="#10b981" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1082,19 +1094,38 @@ function App() {
               </div>
             </div>
 
-            <div className="glass-panel chart-card">
-              <h3 className="chart-title">Dividend & Retained Earnings Share</h3>
-              <div style={{ flex: 1, width: '100%', minHeight: '300px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={filteredData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="name" stroke="#94a3b8" />
-                    <YAxis stroke="#94a3b8" />
-                    <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderRadius: '12px' }} />
-                    <Legend />
-                    <Area type="monotone" dataKey="profit" name="Net Earnings (₹ Cr)" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
-                  </AreaChart>
-                </ResponsiveContainer>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '24px' }}>
+              <div className="glass-panel chart-card">
+                <h3 className="chart-title">Dividend & Retained Earnings Share</h3>
+                <div style={{ flex: 1, width: '100%', minHeight: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={filteredData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="name" stroke="#94a3b8" />
+                      <YAxis stroke="#94a3b8" />
+                      <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderRadius: '12px' }} />
+                      <Legend />
+                      <Area type="monotone" dataKey="profit" name="Net Earnings (₹ Cr)" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="glass-panel chart-card">
+                <h3 className="chart-title">Sector Dividend Yield vs Payout Ratio (%)</h3>
+                <div style={{ flex: 1, width: '100%', minHeight: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={filteredSectors}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="name" stroke="#94a3b8" />
+                      <YAxis stroke="#94a3b8" />
+                      <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderRadius: '12px' }} />
+                      <Legend />
+                      <Bar dataKey="divYield" name="Dividend Yield %" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="payoutRatio" name="Payout Ratio %" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>
@@ -1109,13 +1140,13 @@ function App() {
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>PostgreSQL Warehouse: bluestock_dw</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '20px' }}>
-                Star schema data warehouse configured with 10 Many-to-One analytical relationships, 33 pre-programmed DAX measures, and seamless Git-tracked Power BI Developer Projects (.pbip).
+                Star schema data warehouse configured with 10 Many-to-One analytical relationships, 37 pre-programmed DAX measures, and seamless Git-tracked Power BI Developer Projects (.pbip).
               </p>
               
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 33 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 37 DAX Measures Ready</span>
               </div>
             </div>
 
