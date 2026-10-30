@@ -268,7 +268,9 @@ def generate_dashboards():
         {"name": "EPS", "expression": "AVERAGE(fact_profit_loss[eps])", "formatString": "₹#,0.00"},
         {"name": "ROCE", "expression": "AVERAGE(fact_analysis[roe_pct])", "formatString": "0.00%"},
         {"name": "Piotroski 9-Point Score", "expression": "VAR F_ROA = IF([ROA] > 0, 1, 0) VAR F_CFO = IF([Free Cash Flow] > 0, 1, 0) VAR F_Accrual = IF([Free Cash Flow] > [Total Net Profit], 1, 0) RETURN F_ROA + F_CFO + F_Accrual", "formatString": "0"},
-        {"name": "DuPont 3-Stage ROE", "expression": "VAR NetProfitMargin = DIVIDE([Total Net Profit], [Total Revenue], 0) VAR AssetTurnover = DIVIDE([Total Revenue], SUM(fact_balance_sheet[total_assets]), 0) VAR FinancialLeverage = DIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0) RETURN NetProfitMargin * AssetTurnover * FinancialLeverage", "formatString": "0.00%"}
+        {"name": "DuPont 3-Stage ROE", "expression": "VAR NetProfitMargin = DIVIDE([Total Net Profit], [Total Revenue], 0) VAR AssetTurnover = DIVIDE([Total Revenue], SUM(fact_balance_sheet[total_assets]), 0) VAR FinancialLeverage = DIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0) RETURN NetProfitMargin * AssetTurnover * FinancialLeverage", "formatString": "0.00%"},
+        {"name": "Operating Cash Flow Margin %", "expression": "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[sales]), 0) * 100", "formatString": "0.00%"},
+        {"name": "Cash Flow to Debt Ratio", "expression": "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[borrowings]), 0)", "formatString": "0.00"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
