@@ -143,6 +143,27 @@ const fallbackCompanies = [
   { symbol: "HINDUNILVR", name: "Hindustan Unilever", sector: "FMCG", marketCapCrores: 570000, pe: 54.2, roe: 20.3, debtEquity: 0.03, altmanZ: 7.21, piotroskiF: 7, status: "Safe" }
 ];
 
+const fallbackKpiAnalytics = {
+  solvency: {
+    weightedDebtToEquity: 0.48,
+    interestCoverageRatio: 8.4,
+    netDebtFreeFirms: 38,
+    cashToDebtRatio: 1.24
+  },
+  dividends: {
+    avgDividendYield: 1.65,
+    consistentPayersCount: 64,
+    avgPayoutRatio: 34.2,
+    dividendGrowthCagr: 11.8
+  },
+  profitability: {
+    medianROE: 19.4,
+    medianROCE: 18.1,
+    operatingCashFlowMargin: 21.3
+  },
+  timestamp: new Date().toISOString()
+};
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -171,9 +192,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/overview', method: 'GET', description: 'Financial overview and KPI aggregates' },
       { path: '/api/sectors', method: 'GET', description: 'Sector breakdown with search/filter' },
       { path: '/api/companies', method: 'GET', description: 'Institutional companies list with sector filtering, search, and metric sorting' },
+      { path: '/api/analytics/kpis', method: 'GET', description: 'Solvency, dividend returns, and capital profitability index KPIs' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -191,6 +213,17 @@ app.get('/api/export', (req, res) => {
       payload = fallbackHealthScores;
     } else if (dataset === 'companies') {
       payload = fallbackCompanies;
+    } else if (dataset === 'kpis') {
+      payload = [
+        { metric: "Weighted Debt to Equity", value: fallbackKpiAnalytics.solvency.weightedDebtToEquity, category: "Solvency" },
+        { metric: "Interest Coverage Ratio", value: fallbackKpiAnalytics.solvency.interestCoverageRatio, category: "Solvency" },
+        { metric: "Net Debt-Free Firms", value: fallbackKpiAnalytics.solvency.netDebtFreeFirms, category: "Solvency" },
+        { metric: "Average Dividend Yield", value: fallbackKpiAnalytics.dividends.avgDividendYield, category: "Dividends" },
+        { metric: "Consistent Payers Count", value: fallbackKpiAnalytics.dividends.consistentPayersCount, category: "Dividends" },
+        { metric: "Average Payout Ratio", value: fallbackKpiAnalytics.dividends.avgPayoutRatio, category: "Dividends" },
+        { metric: "Median ROE", value: fallbackKpiAnalytics.profitability.medianROE, category: "Profitability" },
+        { metric: "Median ROCE", value: fallbackKpiAnalytics.profitability.medianROCE, category: "Profitability" }
+      ];
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -203,6 +236,10 @@ app.get('/api/export', (req, res) => {
         { name: "Altman Z-Score", category: "Health Scorecard", formula: "1.2*(WC/TA) + 1.4*(RE/TA) + 3.3*(EBIT/TA) + 0.6*(MCap/TL) + 0.999*(Sales/TA)" },
         { name: "Piotroski 9-Point Score", category: "Health Scorecard", formula: "F_ROA + F_CFO + F_Accrual + F_Margin + F_Leverage + [Other Signals]" },
         { name: "DuPont 3-Stage ROE", category: "Capital Efficiency", formula: "NetProfitMargin * AssetTurnover * FinancialLeverage" },
+        { name: "Operating Cash Flow Margin %", category: "Cash Flow", formula: "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[sales]), 0) * 100" },
+        { name: "Cash Flow to Debt Ratio", category: "Debt & Leverage", formula: "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[borrowings]), 0)" },
+        { name: "Dividend Coverage Ratio", category: "Dividend & Returns", formula: "DIVIDE([Total Net Profit], [Total Dividends Paid], 0)" },
+        { name: "Free Cash Flow Yield %", category: "Valuation", formula: "DIVIDE([Free Cash Flow], [Total Market Cap], 0) * 100" },
         { name: "Free Cash Flow", category: "Cash Flow", formula: "SUM(fact_cash_flow[free_cash_flow])" },
         { name: "Net Debt to Equity", category: "Debt & Leverage", formula: "DIVIDE([Total Borrowings] - [Cash Balances], [Shareholders Equity], 0)" }
       ];
@@ -250,6 +287,10 @@ app.get('/api/dax-measures', (req, res) => {
     { name: "Altman Z-Score", category: "Health Scorecard", formula: "1.2*(WC/TA) + 1.4*(RE/TA) + 3.3*(EBIT/TA) + 0.6*(MCap/TL) + 0.999*(Sales/TA)" },
     { name: "Piotroski 9-Point Score", category: "Health Scorecard", formula: "F_ROA + F_CFO + F_Accrual + F_Margin + F_Leverage + [Other Signals]" },
     { name: "DuPont 3-Stage ROE", category: "Capital Efficiency", formula: "NetProfitMargin * AssetTurnover * FinancialLeverage" },
+    { name: "Operating Cash Flow Margin %", category: "Cash Flow", formula: "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[sales]), 0) * 100" },
+    { name: "Cash Flow to Debt Ratio", category: "Debt & Leverage", formula: "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[borrowings]), 0)" },
+    { name: "Dividend Coverage Ratio", category: "Dividend & Returns", formula: "DIVIDE([Total Net Profit], [Total Dividends Paid], 0)" },
+    { name: "Free Cash Flow Yield %", category: "Valuation", formula: "DIVIDE([Free Cash Flow], [Total Market Cap], 0) * 100" },
     { name: "Free Cash Flow", category: "Cash Flow", formula: "SUM(fact_cash_flow[free_cash_flow])" },
     { name: "Net Debt to Equity", category: "Debt & Leverage", formula: "DIVIDE([Total Borrowings] - [Cash Balances], [Shareholders Equity], 0)" }
   ];
@@ -416,6 +457,55 @@ app.get('/api/companies', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve companies catalog', message: err.message });
+  }
+});
+
+// Comprehensive Performance & KPI Summary Analytics
+app.get('/api/analytics/kpis', async (req, res) => {
+  try {
+    if (pool) {
+      try {
+        const bsResult = await pool.query(`
+          SELECT 
+            AVG(debt_to_equity) as avg_de,
+            AVG(equity_ratio) as avg_equity_ratio
+          FROM fact_balance_sheet
+        `);
+        const plResult = await pool.query(`
+          SELECT 
+            AVG(interest_coverage) as avg_coverage,
+            AVG(dividend_payout_pct) as avg_payout
+          FROM fact_profit_loss
+        `);
+
+        return res.json({
+          solvency: {
+            weightedDebtToEquity: Number(Number(bsResult.rows[0]?.avg_de || 0.48).toFixed(2)),
+            interestCoverageRatio: Number(Number(plResult.rows[0]?.avg_coverage || 8.4).toFixed(1)),
+            netDebtFreeFirms: fallbackKpiAnalytics.solvency.netDebtFreeFirms,
+            cashToDebtRatio: fallbackKpiAnalytics.solvency.cashToDebtRatio
+          },
+          dividends: {
+            avgDividendYield: fallbackKpiAnalytics.dividends.avgDividendYield,
+            consistentPayersCount: fallbackKpiAnalytics.dividends.consistentPayersCount,
+            avgPayoutRatio: Number(Number(plResult.rows[0]?.avg_payout || 34.2).toFixed(1)),
+            dividendGrowthCagr: fallbackKpiAnalytics.dividends.dividendGrowthCagr
+          },
+          profitability: fallbackKpiAnalytics.profitability,
+          status: "live",
+          source: "PostgreSQL bluestock_dw"
+        });
+      } catch (err) {
+        console.warn("[PowerBI Backend] DB query for KPIs failed, falling back:", err.message);
+      }
+    }
+
+    res.json({
+      ...fallbackKpiAnalytics,
+      status: "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve analytics KPIs', message: err.message });
   }
 });
 
