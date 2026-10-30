@@ -129,6 +129,20 @@ const fallbackHealthScores = [
   { symbol: "ITC", sector: "FMCG", altmanZ: 8.45, piotroskiF: 9, mlScore: 95, riskLevel: "Safe" }
 ];
 
+const fallbackCompanies = [
+  { symbol: "TCS", name: "Tata Consultancy Services", sector: "IT", marketCapCrores: 1420000, pe: 29.5, roe: 38.2, debtEquity: 0.04, altmanZ: 7.82, piotroskiF: 8, status: "Safe" },
+  { symbol: "INFY", name: "Infosys Ltd", sector: "IT", marketCapCrores: 615000, pe: 24.8, roe: 31.5, debtEquity: 0.08, altmanZ: 6.94, piotroskiF: 7, status: "Safe" },
+  { symbol: "HDFCBANK", name: "HDFC Bank Ltd", sector: "Banking", marketCapCrores: 1250000, pe: 18.2, roe: 16.8, debtEquity: 0.85, altmanZ: 3.45, piotroskiF: 8, status: "Safe" },
+  { symbol: "ICICIBANK", name: "ICICI Bank Ltd", sector: "Banking", marketCapCrores: 890000, pe: 17.4, roe: 18.5, debtEquity: 0.81, altmanZ: 3.52, piotroskiF: 8, status: "Safe" },
+  { symbol: "RELIANCE", name: "Reliance Industries", sector: "Energy", marketCapCrores: 1980000, pe: 26.1, roe: 12.4, debtEquity: 0.42, altmanZ: 3.12, piotroskiF: 7, status: "Moderate" },
+  { symbol: "TATAMOTORS", name: "Tata Motors Ltd", sector: "Auto", marketCapCrores: 345000, pe: 16.5, roe: 18.9, debtEquity: 0.74, altmanZ: 2.85, piotroskiF: 7, status: "Moderate" },
+  { symbol: "MARUTI", name: "Maruti Suzuki India", sector: "Auto", marketCapCrores: 385000, pe: 28.2, roe: 14.8, debtEquity: 0.02, altmanZ: 6.15, piotroskiF: 8, status: "Safe" },
+  { symbol: "SUNPHARMA", name: "Sun Pharmaceutical", sector: "Pharma", marketCapCrores: 410000, pe: 34.6, roe: 15.7, debtEquity: 0.12, altmanZ: 5.61, piotroskiF: 8, status: "Safe" },
+  { symbol: "CIPLA", name: "Cipla Ltd", sector: "Pharma", marketCapCrores: 125000, pe: 26.8, roe: 16.4, debtEquity: 0.05, altmanZ: 6.42, piotroskiF: 8, status: "Safe" },
+  { symbol: "ITC", name: "ITC Ltd", sector: "FMCG", marketCapCrores: 580000, pe: 27.4, roe: 29.4, debtEquity: 0.01, altmanZ: 8.45, piotroskiF: 9, status: "Safe" },
+  { symbol: "HINDUNILVR", name: "Hindustan Unilever", sector: "FMCG", marketCapCrores: 570000, pe: 54.2, roe: 20.3, debtEquity: 0.03, altmanZ: 7.21, piotroskiF: 7, status: "Safe" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -156,9 +170,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/health', method: 'GET', description: 'System health, uptime, and memory diagnostics' },
       { path: '/api/overview', method: 'GET', description: 'Financial overview and KPI aggregates' },
       { path: '/api/sectors', method: 'GET', description: 'Sector breakdown with search/filter' },
+      { path: '/api/companies', method: 'GET', description: 'Institutional companies list with sector filtering, search, and metric sorting' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -174,6 +189,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackSectors;
     } else if (dataset === 'health') {
       payload = fallbackHealthScores;
+    } else if (dataset === 'companies') {
+      payload = fallbackCompanies;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -354,6 +371,51 @@ app.get('/api/health-scorecard', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve health scorecard', message: err.message });
+  }
+});
+
+// Companies Directory & Financial Scorecard Endpoint
+app.get('/api/companies', async (req, res) => {
+  try {
+    const { sector, search, sortBy = 'marketCapCrores', order = 'desc', limit } = req.query;
+    let results = [...fallbackCompanies];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(c => c.sector.toLowerCase().includes(secLower));
+    }
+
+    if (search && String(search).trim() !== '') {
+      const q = String(search).toLowerCase();
+      results = results.filter(c => 
+        c.symbol.toLowerCase().includes(q) || 
+        c.name.toLowerCase().includes(q) || 
+        c.sector.toLowerCase().includes(q)
+      );
+    }
+
+    // Sort results
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    if (limit && !isNaN(Number(limit))) {
+      results = results.slice(0, Number(limit));
+    }
+
+    res.json({
+      companies: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve companies catalog', message: err.message });
   }
 });
 
