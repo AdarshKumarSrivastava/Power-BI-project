@@ -7,7 +7,7 @@ import {
   LayoutDashboard, TrendingUp,
   PieChart, Settings, Database, Briefcase, ShieldCheck, DollarSign,
   Layers, CheckCircle2, RefreshCw, Filter, X, Download, Code2, Copy, Check,
-  AlertTriangle, Sun, Moon
+  AlertTriangle, Sun, Moon, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 
 interface ErrorBoundaryProps {
@@ -108,10 +108,14 @@ const HEALTH_COMPANIES = [
   { symbol: "TCS", sector: "IT", altmanZ: 7.82, piotroskiF: 8, roe: "38.2%", debtEquity: 0.04, status: "Safe" },
   { symbol: "INFY", sector: "IT", altmanZ: 6.94, piotroskiF: 7, roe: "31.5%", debtEquity: 0.08, status: "Safe" },
   { symbol: "HDFCBANK", sector: "Banking", altmanZ: 3.45, piotroskiF: 8, roe: "16.8%", debtEquity: 0.85, status: "Safe" },
+  { symbol: "ICICIBANK", sector: "Banking", altmanZ: 3.52, piotroskiF: 8, roe: "18.5%", debtEquity: 0.81, status: "Safe" },
   { symbol: "RELIANCE", sector: "Energy", altmanZ: 3.12, piotroskiF: 7, roe: "12.4%", debtEquity: 0.42, status: "Moderate" },
   { symbol: "TATAMOTORS", sector: "Auto", altmanZ: 2.85, piotroskiF: 7, roe: "18.9%", debtEquity: 0.74, status: "Moderate" },
+  { symbol: "MARUTI", sector: "Auto", altmanZ: 6.15, piotroskiF: 8, roe: "14.8%", debtEquity: 0.02, status: "Safe" },
   { symbol: "SUNPHARMA", sector: "Pharma", altmanZ: 5.61, piotroskiF: 8, roe: "15.7%", debtEquity: 0.12, status: "Safe" },
-  { symbol: "ITC", sector: "FMCG", altmanZ: 8.45, piotroskiF: 9, roe: "29.4%", debtEquity: 0.01, status: "Safe" }
+  { symbol: "CIPLA", sector: "Pharma", altmanZ: 6.42, piotroskiF: 8, roe: "16.4%", debtEquity: 0.05, status: "Safe" },
+  { symbol: "ITC", sector: "FMCG", altmanZ: 8.45, piotroskiF: 9, roe: "29.4%", debtEquity: 0.01, status: "Safe" },
+  { symbol: "HINDUNILVR", sector: "FMCG", altmanZ: 7.21, piotroskiF: 7, roe: "20.3%", debtEquity: 0.03, status: "Safe" }
 ];
 
 const STAR_SCHEMA_TABLES = [
@@ -238,6 +242,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Capital Efficiency",
     formula: "DuPont ROE = \nVAR NetProfitMargin = DIVIDE([Net Profit], [Total Sales], 0)\nVAR AssetTurnover = DIVIDE([Total Sales], [Total Assets], 0)\nVAR FinancialLeverage = DIVIDE([Total Assets], [Total Equity], 0)\nRETURN NetProfitMargin * AssetTurnover * FinancialLeverage",
     description: "Breaks down Return on Equity into operating efficiency, asset productivity, and financial leverage."
+  },
+  {
+    name: "Operating Cash Flow Margin %",
+    category: "Cash Flow",
+    formula: "Operating Cash Flow Margin % = \nDIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[sales]), 0) * 100",
+    description: "Measures the percentage of top-line revenue converted directly into operating cash flows."
+  },
+  {
+    name: "Cash Flow to Debt Ratio",
+    category: "Debt & Leverage",
+    formula: "Cash Flow to Debt Ratio = \nDIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[borrowings]), 0)",
+    description: "Evaluates corporate leverage coverage and debt redemption capability from operating cash flow generation."
   }
 ];
 
@@ -291,14 +307,44 @@ function App() {
     return ['All', ...Array.from(new Set(DAX_MEASURES.map(m => m.category)))];
   }, []);
 
+  type HealthSortKey = 'symbol' | 'sector' | 'altmanZ' | 'piotroskiF' | 'roe' | 'debtEquity' | 'status';
+  const [healthSortKey, setHealthSortKey] = useState<HealthSortKey>('altmanZ');
+  const [healthSortOrder, setHealthSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const handleHealthSort = (key: HealthSortKey) => {
+    if (healthSortKey === key) {
+      setHealthSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setHealthSortKey(key);
+      setHealthSortOrder(key === 'symbol' || key === 'sector' ? 'asc' : 'desc');
+    }
+  };
+
   const filteredCompanies = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return HEALTH_COMPANIES.filter(c => {
+    const result = HEALTH_COMPANIES.filter(c => {
       const matchesSector = selectedSector === 'All' || c.sector === selectedSector;
       const matchesSearch = !q || c.symbol.toLowerCase().includes(q) || c.sector.toLowerCase().includes(q);
       return matchesSector && matchesSearch;
     });
-  }, [selectedSector, searchQuery]);
+
+    result.sort((a, b) => {
+      let valA: string | number = a[healthSortKey];
+      let valB: string | number = b[healthSortKey];
+      if (healthSortKey === 'roe') {
+        valA = parseFloat(String(valA).replace('%', '')) || 0;
+        valB = parseFloat(String(valB).replace('%', '')) || 0;
+      }
+      if (typeof valA === 'string') {
+        return healthSortOrder === 'asc'
+          ? (valA as string).localeCompare(valB as string)
+          : (valB as string).localeCompare(valA as string);
+      }
+      return healthSortOrder === 'asc' ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    return result;
+  }, [selectedSector, searchQuery, healthSortKey, healthSortOrder]);
 
   const escapeCsvCell = (val: string | number | undefined | null): string => {
     const str = String(val ?? '');
@@ -895,18 +941,61 @@ function App() {
             </div>
 
             <div className="glass-panel" style={{ padding: '24px' }}>
-              <h3 className="chart-title" style={{ marginBottom: '16px' }}>Enterprise Financial Health Scorecard</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                <h3 className="chart-title" style={{ margin: 0 }}>Enterprise Financial Health Scorecard</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    Showing <strong>{filteredCompanies.length}</strong> companies (sorted by <strong>{healthSortKey}</strong> {healthSortOrder.toUpperCase()})
+                  </span>
+                  <button
+                    className="filter-btn"
+                    onClick={() => setHealthSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}
+                    style={{ fontSize: '0.75rem', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    title="Toggle sort direction"
+                  >
+                    <ArrowUpDown size={12} /> {healthSortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                  </button>
+                </div>
+              </div>
               <div className="table-wrapper">
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Symbol</th>
-                      <th>Sector</th>
-                      <th>Altman Z-Score</th>
-                      <th>Piotroski F</th>
-                      <th>Return on Equity</th>
-                      <th>Debt / Equity</th>
-                      <th>Risk Rating</th>
+                      <th onClick={() => handleHealthSort('symbol')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Symbol">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Symbol {healthSortKey === 'symbol' ? (healthSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleHealthSort('sector')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Sector">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Sector {healthSortKey === 'sector' ? (healthSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleHealthSort('altmanZ')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Altman Z-Score">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Altman Z-Score {healthSortKey === 'altmanZ' ? (healthSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleHealthSort('piotroskiF')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Piotroski F-Score">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Piotroski F {healthSortKey === 'piotroskiF' ? (healthSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleHealthSort('roe')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Return on Equity">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Return on Equity {healthSortKey === 'roe' ? (healthSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleHealthSort('debtEquity')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Debt/Equity">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Debt / Equity {healthSortKey === 'debtEquity' ? (healthSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleHealthSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Risk Rating">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Risk Rating {healthSortKey === 'status' ? (healthSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
