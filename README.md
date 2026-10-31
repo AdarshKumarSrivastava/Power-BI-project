@@ -60,8 +60,8 @@ python generate_powerbi_models.py
 ## 📊 Comprehensive DAX Repository
 
 The system provides standard institutional financial measures:
-- **Profitability**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`
-- **Valuation**: `P/E Ratio`, `P/B Ratio`, `EV to EBITDA`, `PEG Ratio`, `Free Cash Flow Yield %`
+- **Profitability & Capital Efficiency**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`, `CFROIC %`
+- **Valuation**: `P/E Ratio`, `Price to Book (P/B) Ratio`, `EV to EBITDA`, `PEG Ratio`, `Free Cash Flow Yield %`
 - **Solvency, Liquidity & Cash Flow**: `Debt to Equity Ratio`, `Current Ratio`, `Interest Coverage Ratio`, `Net Debt to Equity`, `Operating Cash Flow Margin %`, `Cash Flow to Debt Ratio`, `Free Cash Flow`
 - **Shareholder Return**: `Dividend Yield %`, `Dividend Payout Ratio`, `Dividend Coverage Ratio`, `Earnings Per Share (EPS)`, `Consistent Dividend Payers Flag`
 - **Composite Scoring**: `Piotroski F-Score (0-9)`, `Altman Z-Score`, `DuPont 3-Stage ROE Decomposition`
@@ -80,9 +80,10 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/sectors` | Sector taxonomy with revenue, PE ratios, and margin aggregates. Supports `?sector=` and `?search=`. |
 | `GET` | `/api/companies` | Company catalog with sector filtering, search, and metric sorting. Supports `?sector=`, `?search=`, `?sortBy=`, `?order=asc\|desc`, `?limit=`. |
 | `GET` | `/api/analytics/kpis` | Benchmark index KPIs across solvency (D/E, coverage), dividend metrics (yield, payout), and profitability. |
+| `GET` | `/api/analytics/growth` | Multi-period CAGR growth rates (3Y, 5Y, 10Y) for sales and profit with margin expansion by sector. Supports `?sector=` and `?period=3Y\|5Y\|10Y`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|overview` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview` and `?format=json\|csv`. |
 
 ---
 
