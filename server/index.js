@@ -164,6 +164,15 @@ const fallbackKpiAnalytics = {
   timestamp: new Date().toISOString()
 };
 
+const fallbackGrowthAnalytics = [
+  { sector: "Information Tech", salesCAGR3Y: 15.4, salesCAGR5Y: 14.2, salesCAGR10Y: 13.8, profitCAGR3Y: 16.8, profitCAGR5Y: 15.1, marginExpansionBps: 180 },
+  { sector: "Banking & Finance", salesCAGR3Y: 18.2, salesCAGR5Y: 16.5, salesCAGR10Y: 14.9, profitCAGR3Y: 22.4, profitCAGR5Y: 19.8, marginExpansionBps: 240 },
+  { sector: "Automobile", salesCAGR3Y: 19.5, salesCAGR5Y: 11.8, salesCAGR10Y: 9.6, profitCAGR3Y: 34.2, profitCAGR5Y: 18.5, marginExpansionBps: 310 },
+  { sector: "Pharma & Healthcare", salesCAGR3Y: 11.2, salesCAGR5Y: 12.4, salesCAGR10Y: 11.8, profitCAGR3Y: 14.5, profitCAGR5Y: 13.9, marginExpansionBps: 120 },
+  { sector: "Oil & Gas / Energy", salesCAGR3Y: 16.8, salesCAGR5Y: 13.1, salesCAGR10Y: 8.5, profitCAGR3Y: 12.9, profitCAGR5Y: 11.4, marginExpansionBps: -40 },
+  { sector: "FMCG / Consumer", salesCAGR3Y: 9.8, salesCAGR5Y: 10.4, salesCAGR10Y: 10.9, profitCAGR3Y: 11.2, profitCAGR5Y: 11.8, marginExpansionBps: 90 }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -193,9 +202,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/sectors', method: 'GET', description: 'Sector breakdown with search/filter' },
       { path: '/api/companies', method: 'GET', description: 'Institutional companies list with sector filtering, search, and metric sorting' },
       { path: '/api/analytics/kpis', method: 'GET', description: 'Solvency, dividend returns, and capital profitability index KPIs' },
+      { path: '/api/analytics/growth', method: 'GET', description: 'Multi-period (3Y, 5Y, 10Y) sales & profit CAGR growth rates by sector' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -224,6 +234,8 @@ app.get('/api/export', (req, res) => {
         { metric: "Median ROE", value: fallbackKpiAnalytics.profitability.medianROE, category: "Profitability" },
         { metric: "Median ROCE", value: fallbackKpiAnalytics.profitability.medianROCE, category: "Profitability" }
       ];
+    } else if (dataset === 'growth') {
+      payload = fallbackGrowthAnalytics;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -506,6 +518,40 @@ app.get('/api/analytics/kpis', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve analytics KPIs', message: err.message });
+  }
+});
+
+// Growth Analytics & Multi-Year CAGR Endpoint
+app.get('/api/analytics/growth', async (req, res) => {
+  try {
+    const { sector, period } = req.query;
+    let results = [...fallbackGrowthAnalytics];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(g => g.sector.toLowerCase().includes(secLower));
+    }
+
+    if (period) {
+      const p = String(period).toUpperCase();
+      if (['3Y', '5Y', '10Y'].includes(p)) {
+        results = results.map(g => ({
+          sector: g.sector,
+          salesCAGR: g[`salesCAGR${p}`],
+          profitCAGR: g[`profitCAGR${p}`],
+          marginExpansionBps: g.marginExpansionBps
+        }));
+      }
+    }
+
+    res.json({
+      growthRates: results,
+      totalCount: results.length,
+      period: period || 'All',
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve growth analytics', message: err.message });
   }
 });
 
