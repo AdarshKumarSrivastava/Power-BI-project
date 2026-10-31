@@ -272,7 +272,10 @@ def generate_dashboards():
         {"name": "Operating Cash Flow Margin %", "expression": "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[sales]), 0) * 100", "formatString": "0.00%"},
         {"name": "Cash Flow to Debt Ratio", "expression": "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[borrowings]), 0)", "formatString": "0.00"},
         {"name": "Dividend Coverage Ratio", "expression": "DIVIDE(SUM(fact_profit_loss[net_profit]), SUM(fact_profit_loss[sales]) * (AVERAGE(fact_profit_loss[dividend_payout_pct]) / 100), 0)", "formatString": "0.00"},
-        {"name": "Free Cash Flow Yield %", "expression": "DIVIDE([Free Cash Flow], SUM(dim_company[market_cap_crores]), 0) * 100", "formatString": "0.00%"}
+        {"name": "Free Cash Flow Yield %", "expression": "DIVIDE([Free Cash Flow], SUM(dim_company[market_cap_crores]), 0) * 100", "formatString": "0.00%"},
+        {"name": "EV to EBITDA", "expression": "DIVIDE(SUM(dim_company[market_cap_crores]) + SUM(fact_balance_sheet[borrowings]) - SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_profit_loss[operating_profit]), 0)", "formatString": "0.00"},
+        {"name": "Price to Book Ratio", "expression": "DIVIDE(SUM(dim_company[market_cap_crores]), [Reserves], 0)", "formatString": "0.00"},
+        {"name": "CFROIC", "expression": "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[total_assets]), 0) * 100", "formatString": "0.00%"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
