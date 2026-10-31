@@ -266,6 +266,24 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Valuation",
     formula: "Free Cash Flow Yield % = \nDIVIDE([Free Cash Flow], SUM(dim_company[market_cap_crores]), 0) * 100",
     description: "Compares discretionary free cash flow to enterprise market capitalization."
+  },
+  {
+    name: "EV to EBITDA",
+    category: "Valuation",
+    formula: "EV to EBITDA = \nDIVIDE(SUM(dim_company[market_cap_crores]) + SUM(fact_balance_sheet[borrowings]) - SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_profit_loss[operating_profit]), 0)",
+    description: "Enterprise multiple assessing valuation against operating earnings cash generation before interest, taxes, and non-cash charges."
+  },
+  {
+    name: "Price to Book (P/B) Ratio",
+    category: "Valuation",
+    formula: "Price to Book Ratio = \nDIVIDE(SUM(dim_company[market_cap_crores]), [Reserves], 0)",
+    description: "Compares market capitalization directly against accumulated net book reserves and shareholder equity."
+  },
+  {
+    name: "CFROIC %",
+    category: "Capital Efficiency",
+    formula: "CFROIC = \nDIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[total_assets]), 0) * 100",
+    description: "Cash Flow Return on Invested Capital evaluating operating cash productivity generated per rupee of capital deployed."
   }
 ];
 
@@ -302,9 +320,31 @@ function App() {
     return data.filter(d => selectedYear === 'All' || d.name === selectedYear);
   }, [data, selectedYear]);
 
+  type SectorSortKey = 'name' | 'revenue' | 'margin' | 'pe' | 'debtEquity' | 'divYield';
+  const [sectorSortKey, setSectorSortKey] = useState<SectorSortKey>('revenue');
+  const [sectorSortOrder, setSectorSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const handleSectorSort = (key: SectorSortKey) => {
+    if (sectorSortKey === key) {
+      setSectorSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSectorSortKey(key);
+      setSectorSortOrder(key === 'name' ? 'asc' : 'desc');
+    }
+  };
+
   const filteredSectors = useMemo(() => {
-    return SECTOR_DATA.filter(s => selectedSector === 'All' || s.name === selectedSector);
-  }, [selectedSector]);
+    const list = SECTOR_DATA.filter(s => selectedSector === 'All' || s.name === selectedSector);
+    list.sort((a, b) => {
+      const valA = a[sectorSortKey];
+      const valB = b[sectorSortKey];
+      if (typeof valA === 'string') {
+        return sectorSortOrder === 'asc' ? valA.localeCompare(valB as string) : (valB as string).localeCompare(valA);
+      }
+      return sectorSortOrder === 'asc' ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+    return list;
+  }, [selectedSector, sectorSortKey, sectorSortOrder]);
 
   const filteredDaxMeasures = useMemo(() => {
     const q = daxSearchQuery.trim().toLowerCase();
@@ -897,16 +937,47 @@ function App() {
             </div>
 
             <div className="glass-panel" style={{ padding: '24px' }}>
-              <h3 className="chart-title" style={{ marginBottom: '16px' }}>Sector Performance Summary</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                <h3 className="chart-title" style={{ margin: 0 }}>Sector Performance & Solvency Breakdown</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  Showing <strong>{filteredSectors.length}</strong> sectors (sorted by <strong>{sectorSortKey}</strong> {sectorSortOrder.toUpperCase()})
+                </span>
+              </div>
               <div className="table-wrapper">
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Sector</th>
-                      <th>Revenue (₹ Cr)</th>
-                      <th>Avg Margin</th>
-                      <th>Avg P/E</th>
-                      <th>Weightage</th>
+                      <th onClick={() => handleSectorSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Sector">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Sector {sectorSortKey === 'name' ? (sectorSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSectorSort('revenue')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Revenue">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Revenue (₹ Cr) {sectorSortKey === 'revenue' ? (sectorSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSectorSort('margin')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Margin">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Avg Margin {sectorSortKey === 'margin' ? (sectorSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSectorSort('pe')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by P/E">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Avg P/E {sectorSortKey === 'pe' ? (sectorSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSectorSort('debtEquity')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by D/E">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Debt / Equity {sectorSortKey === 'debtEquity' ? (sectorSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSectorSort('divYield')} style={{ cursor: 'pointer', userSelect: 'none' }} title="Click to sort by Div Yield">
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          Div Yield {sectorSortKey === 'divYield' ? (sectorSortOrder === 'asc' ? <ArrowUp size={13} color="var(--accent-blue)" /> : <ArrowDown size={13} color="var(--accent-blue)" />) : <ArrowUpDown size={12} style={{ opacity: 0.3 }} />}
+                        </div>
+                      </th>
+                      <th>Strategic Tier</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -916,7 +987,9 @@ function App() {
                         <td>₹{s.revenue.toLocaleString()}</td>
                         <td style={{ color: 'var(--success)' }}>{s.margin}%</td>
                         <td>{s.pe}x</td>
-                        <td><span className="badge badge-info">Strategic</span></td>
+                        <td>{s.debtEquity}</td>
+                        <td style={{ color: 'var(--accent-teal)' }}>{s.divYield}%</td>
+                        <td><span className="badge badge-info">Core Nifty</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -1140,13 +1213,13 @@ function App() {
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>PostgreSQL Warehouse: bluestock_dw</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '20px' }}>
-                Star schema data warehouse configured with 10 Many-to-One analytical relationships, 37 pre-programmed DAX measures, and seamless Git-tracked Power BI Developer Projects (.pbip).
+                Star schema data warehouse configured with 10 Many-to-One analytical relationships, 40 pre-programmed DAX measures, and seamless Git-tracked Power BI Developer Projects (.pbip).
               </p>
               
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 37 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 40 DAX Measures Ready</span>
               </div>
             </div>
 
