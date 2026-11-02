@@ -284,6 +284,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Capital Efficiency",
     formula: "CFROIC = \nDIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[total_assets]), 0) * 100",
     description: "Cash Flow Return on Invested Capital evaluating operating cash productivity generated per rupee of capital deployed."
+  },
+  {
+    name: "Sloan Accrual Ratio",
+    category: "Health Scorecard",
+    formula: "Sloan Accrual Ratio = \nDIVIDE(SUM(fact_profit_loss[net_profit]) - SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[total_assets]), 0)",
+    description: "Detects earnings quality issues by measuring the proportion of reported net income driven by non-cash accounting accruals."
+  },
+  {
+    name: "Operating Cash Flow to Net Income",
+    category: "Cash Flow",
+    formula: "Operating Cash Flow to Net Income = \nDIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[net_profit]), 0)",
+    description: "Evaluates the cash backed quality of reported earnings; ratios above 1.0 indicate high quality earnings."
   }
 ];
 
@@ -878,20 +890,39 @@ function App() {
               </div>
             </div>
 
-            <div className="glass-panel chart-card">
-              <h3 className="chart-title">Revenue vs Profit Growth Trajectory</h3>
-              <div style={{ flex: 1, width: '100%', minHeight: '350px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={filteredData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="name" stroke="#94a3b8" />
-                    <YAxis stroke="#94a3b8" />
-                    <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderRadius: '12px' }} />
-                    <Legend />
-                    <Line type="monotone" dataKey="revenue" name="Total Revenue (₹ Cr)" stroke="#3b82f6" strokeWidth={3} dot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="profit" name="Net Profit (₹ Cr)" stroke="#10b981" strokeWidth={3} dot={{ r: 5 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+            <div className="chart-grid">
+              <div className="glass-panel chart-card">
+                <h3 className="chart-title">Revenue vs Profit Growth Trajectory</h3>
+                <div style={{ flex: 1, width: '100%', minHeight: '320px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={filteredData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="name" stroke="#94a3b8" />
+                      <YAxis stroke="#94a3b8" />
+                      <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderRadius: '12px' }} />
+                      <Legend />
+                      <Line type="monotone" dataKey="revenue" name="Total Revenue (₹ Cr)" stroke="#3b82f6" strokeWidth={3} dot={{ r: 5 }} />
+                      <Line type="monotone" dataKey="profit" name="Net Profit (₹ Cr)" stroke="#10b981" strokeWidth={3} dot={{ r: 5 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="glass-panel chart-card">
+                <h3 className="chart-title">Sector Operating Margin vs Valuation Multiplier</h3>
+                <div style={{ flex: 1, width: '100%', minHeight: '320px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={filteredSectors}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="name" stroke="#94a3b8" />
+                      <YAxis stroke="#94a3b8" />
+                      <Tooltip contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', borderRadius: '12px' }} />
+                      <Legend />
+                      <Bar dataKey="margin" name="Operating Margin %" fill="#10b981" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="pe" name="P/E Multiplier" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>
@@ -1213,13 +1244,13 @@ function App() {
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>PostgreSQL Warehouse: bluestock_dw</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '20px' }}>
-                Star schema data warehouse configured with 10 Many-to-One analytical relationships, 40 pre-programmed DAX measures, and seamless Git-tracked Power BI Developer Projects (.pbip).
+                Star schema data warehouse configured with 10 Many-to-One analytical relationships, 42 pre-programmed DAX measures, and seamless Git-tracked Power BI Developer Projects (.pbip).
               </p>
               
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 40 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 42 DAX Measures Ready</span>
               </div>
             </div>
 
