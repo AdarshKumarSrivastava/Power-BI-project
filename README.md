@@ -4,7 +4,7 @@ An end-to-end Financial Intelligence system featuring a star-schema analytical w
 
 ---
 
-## 🌟 Key Features
+## 🔑 Key Features
 
 1. **Enterprise Star Schema Data Warehouse**:
    - Fact tables: `fact_financial_metrics`, `fact_valuation`, `fact_stock_prices`
@@ -24,7 +24,7 @@ An end-to-end Financial Intelligence system featuring a star-schema analytical w
 
 ---
 
-## 🚀 Quick Start Guide
+## ⚡ Quick Start Guide
 
 ### 1. Web Dashboard (Frontend)
 ```bash
@@ -65,10 +65,12 @@ The system provides standard institutional financial measures:
 - **Solvency, Liquidity & Cash Flow**: `Debt to Equity Ratio`, `Current Ratio`, `Interest Coverage Ratio`, `Net Debt to Equity`, `Operating Cash Flow Margin %`, `Cash Flow to Debt Ratio`, `Free Cash Flow`
 - **Shareholder Return**: `Dividend Yield %`, `Dividend Payout Ratio`, `Dividend Coverage Ratio`, `Earnings Per Share (EPS)`, `Consistent Dividend Payers Flag`
 - **Composite Scoring**: `Piotroski F-Score (0-9)`, `Altman Z-Score`, `DuPont 3-Stage ROE Decomposition`
+- **Earnings Quality & Cash Flow**: `Sloan Accrual Ratio`, `Operating Cash Flow to Net Income`
+- **Growth & Momentum**: `Revenue CAGR 3Y`, `EPS Growth Rate`, `Price Momentum 12M`, `Revenue Surprise Index`
 
 ---
 
-## 📡 REST API Specifications
+## 🔌 REST API Specifications
 
 The Node.js Express backend serves structured endpoints for frontend and external consumption:
 
@@ -81,9 +83,10 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/companies` | Company catalog with sector filtering, search, and metric sorting. Supports `?sector=`, `?search=`, `?sortBy=`, `?order=asc\|desc`, `?limit=`. |
 | `GET` | `/api/analytics/kpis` | Benchmark index KPIs across solvency (D/E, coverage), dividend metrics (yield, payout), and profitability. |
 | `GET` | `/api/analytics/growth` | Multi-period CAGR growth rates (3Y, 5Y, 10Y) for sales and profit with margin expansion by sector. Supports `?sector=` and `?period=3Y\|5Y\|10Y`. |
+| `GET` | `/api/analytics/valuation` | Institutional sector valuation multiples (P/E, P/B, EV/EBITDA, forward P/E, market cap, div yield). Supports `?sector=` and `?sortBy=pe\|pb\|evEbitda\|forwardPE\|marketCapCrores`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation` and `?format=json\|csv`. |
 
 ---
 
