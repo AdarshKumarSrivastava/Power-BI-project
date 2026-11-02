@@ -914,6 +914,16 @@
             "name": "CFROIC",
             "expression": "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[total_assets]), 0) * 100",
             "formatString": "0.00%"
+          },
+          {
+            "name": "Sloan Accrual Ratio",
+            "expression": "DIVIDE(SUM(fact_profit_loss[net_profit]) - SUM(fact_cash_flow[operating_activity]), SUM(fact_balance_sheet[total_assets]), 0)",
+            "formatString": "0.00"
+          },
+          {
+            "name": "Operating Cash Flow to Net Income",
+            "expression": "DIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[net_profit]), 0)",
+            "formatString": "0.00"
           }
         ]
       }
