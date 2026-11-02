@@ -173,6 +173,15 @@ const fallbackGrowthAnalytics = [
   { sector: "FMCG / Consumer", salesCAGR3Y: 9.8, salesCAGR5Y: 10.4, salesCAGR10Y: 10.9, profitCAGR3Y: 11.2, profitCAGR5Y: 11.8, marginExpansionBps: 90 }
 ];
 
+const fallbackValuationMetrics = [
+  { sector: "Information Tech", pe: 28.4, pb: 7.8, evEbitda: 19.2, divYield: 2.1, marketCapCrores: 3120000, forwardPE: 24.5 },
+  { sector: "Banking & Finance", pe: 16.8, pb: 2.4, evEbitda: 12.1, divYield: 1.4, marketCapCrores: 4450000, forwardPE: 14.8 },
+  { sector: "Automobile", pe: 24.1, pb: 4.1, evEbitda: 14.8, divYield: 1.2, marketCapCrores: 1680000, forwardPE: 19.6 },
+  { sector: "Pharma & Healthcare", pe: 32.5, pb: 5.6, evEbitda: 21.4, divYield: 0.9, marketCapCrores: 1420000, forwardPE: 26.8 },
+  { sector: "Oil & Gas / Energy", pe: 12.2, pb: 1.8, evEbitda: 8.4, divYield: 3.8, marketCapCrores: 2890000, forwardPE: 11.0 },
+  { sector: "FMCG / Consumer", pe: 41.6, pb: 11.2, evEbitda: 28.5, divYield: 2.6, marketCapCrores: 2150000, forwardPE: 36.4 }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -203,9 +212,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/companies', method: 'GET', description: 'Institutional companies list with sector filtering, search, and metric sorting' },
       { path: '/api/analytics/kpis', method: 'GET', description: 'Solvency, dividend returns, and capital profitability index KPIs' },
       { path: '/api/analytics/growth', method: 'GET', description: 'Multi-period (3Y, 5Y, 10Y) sales & profit CAGR growth rates by sector' },
+      { path: '/api/analytics/valuation', method: 'GET', description: 'Institutional sector valuation multiples (P/E, P/B, EV/EBITDA, forward P/E)' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -236,6 +246,8 @@ app.get('/api/export', (req, res) => {
       ];
     } else if (dataset === 'growth') {
       payload = fallbackGrowthAnalytics;
+    } else if (dataset === 'valuation') {
+      payload = fallbackValuationMetrics;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -552,6 +564,37 @@ app.get('/api/analytics/growth', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve growth analytics', message: err.message });
+  }
+});
+
+// Sector & Market Valuation Multiples Endpoint
+app.get('/api/analytics/valuation', async (req, res) => {
+  try {
+    const { sector, sortBy = 'pe', order = 'desc' } = req.query;
+    let results = [...fallbackValuationMetrics];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(v => v.sector.toLowerCase().includes(secLower));
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      valuation: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve valuation metrics', message: err.message });
   }
 });
 
