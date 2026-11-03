@@ -182,6 +182,20 @@ const fallbackValuationMetrics = [
   { sector: "FMCG / Consumer", pe: 41.6, pb: 11.2, evEbitda: 28.5, divYield: 2.6, marketCapCrores: 2150000, forwardPE: 36.4 }
 ];
 
+const fallbackPeerBenchmarks = [
+  { symbol: "TCS", name: "Tata Consultancy Services", sector: "IT", pe: 29.5, industryPe: 28.4, roe: 38.2, industryRoe: 21.5, evEbitda: 20.1, premiumDiscountPct: 3.87, recommendation: "Overweight" },
+  { symbol: "INFY", name: "Infosys Ltd", sector: "IT", pe: 24.8, industryPe: 28.4, roe: 31.5, industryRoe: 21.5, evEbitda: 17.5, premiumDiscountPct: -12.68, recommendation: "Buy" },
+  { symbol: "HDFCBANK", name: "HDFC Bank Ltd", sector: "Banking", pe: 18.2, industryPe: 16.8, roe: 16.8, industryRoe: 18.2, evEbitda: 12.8, premiumDiscountPct: 8.33, recommendation: "Neutral" },
+  { symbol: "ICICIBANK", name: "ICICI Bank Ltd", sector: "Banking", pe: 17.4, industryPe: 16.8, roe: 18.5, industryRoe: 18.2, evEbitda: 11.9, premiumDiscountPct: 3.57, recommendation: "Buy" },
+  { symbol: "RELIANCE", name: "Reliance Industries", sector: "Energy", pe: 26.1, industryPe: 12.2, roe: 12.4, industryRoe: 14.6, evEbitda: 11.4, premiumDiscountPct: 113.93, recommendation: "Hold" },
+  { symbol: "TATAMOTORS", name: "Tata Motors Ltd", sector: "Auto", pe: 16.5, industryPe: 24.1, roe: 18.9, industryRoe: 11.4, evEbitda: 8.2, premiumDiscountPct: -31.54, recommendation: "Buy" },
+  { symbol: "MARUTI", name: "Maruti Suzuki India", sector: "Auto", pe: 28.2, industryPe: 24.1, roe: 14.8, industryRoe: 11.4, evEbitda: 16.4, premiumDiscountPct: 17.01, recommendation: "Neutral" },
+  { symbol: "SUNPHARMA", name: "Sun Pharmaceutical", sector: "Pharma", pe: 34.6, industryPe: 32.5, roe: 15.7, industryRoe: 19.8, evEbitda: 22.8, premiumDiscountPct: 6.46, recommendation: "Neutral" },
+  { symbol: "CIPLA", name: "Cipla Ltd", sector: "Pharma", pe: 26.8, industryPe: 32.5, roe: 16.4, industryRoe: 19.8, evEbitda: 18.2, premiumDiscountPct: -17.54, recommendation: "Buy" },
+  { symbol: "ITC", name: "ITC Ltd", sector: "FMCG", pe: 27.4, industryPe: 41.6, roe: 29.4, industryRoe: 23.1, evEbitda: 18.9, premiumDiscountPct: -34.13, recommendation: "Buy" },
+  { symbol: "HINDUNILVR", name: "Hindustan Unilever", sector: "FMCG", pe: 54.2, industryPe: 41.6, roe: 20.3, industryRoe: 23.1, evEbitda: 35.6, premiumDiscountPct: 30.29, recommendation: "Hold" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -213,9 +227,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/kpis', method: 'GET', description: 'Solvency, dividend returns, and capital profitability index KPIs' },
       { path: '/api/analytics/growth', method: 'GET', description: 'Multi-period (3Y, 5Y, 10Y) sales & profit CAGR growth rates by sector' },
       { path: '/api/analytics/valuation', method: 'GET', description: 'Institutional sector valuation multiples (P/E, P/B, EV/EBITDA, forward P/E)' },
+      { path: '/api/analytics/peers', method: 'GET', description: 'Institutional peer benchmarking against industry valuation and profitability medians' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -248,6 +263,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackGrowthAnalytics;
     } else if (dataset === 'valuation') {
       payload = fallbackValuationMetrics;
+    } else if (dataset === 'peers') {
+      payload = fallbackPeerBenchmarks;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -595,6 +612,47 @@ app.get('/api/analytics/valuation', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve valuation metrics', message: err.message });
+  }
+});
+
+// Institutional Peer Benchmarking Endpoint
+app.get('/api/analytics/peers', async (req, res) => {
+  try {
+    const { symbol, sector, recommendation, sortBy = 'symbol', order = 'asc' } = req.query;
+    let results = [...fallbackPeerBenchmarks];
+
+    if (symbol) {
+      const symLower = String(symbol).toLowerCase();
+      results = results.filter(p => p.symbol.toLowerCase() === symLower);
+    }
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(p => p.sector.toLowerCase().includes(secLower));
+    }
+
+    if (recommendation && recommendation !== 'All') {
+      const recLower = String(recommendation).toLowerCase();
+      results = results.filter(p => p.recommendation.toLowerCase() === recLower);
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      peers: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve peer benchmarking metrics', message: err.message });
   }
 });
 
