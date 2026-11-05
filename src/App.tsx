@@ -296,6 +296,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Cash Flow",
     formula: "Operating Cash Flow to Net Income = \nDIVIDE(SUM(fact_cash_flow[operating_activity]), SUM(fact_profit_loss[net_profit]), 0)",
     description: "Evaluates the cash backed quality of reported earnings; ratios above 1.0 indicate high quality earnings."
+  },
+  {
+    name: "Price Momentum 12M",
+    category: "Valuation",
+    formula: "Price Momentum 12M = \nDIVIDE(\n    SUM(fact_stock_prices[closing_price]) - CALCULATE(SUM(fact_stock_prices[closing_price]), DATEADD(dim_date[date], -12, MONTH)),\n    CALCULATE(SUM(fact_stock_prices[closing_price]), DATEADD(dim_date[date], -12, MONTH)),\n    0\n)",
+    description: "Measures 12-month trailing price return momentum to identify sector leaders and laggards in price performance."
+  },
+  {
+    name: "Revenue Surprise Index",
+    category: "Growth Analytics",
+    formula: "Revenue Surprise Index = \nDIVIDE(\n    SUM(fact_financial_metrics[revenue]) - SUM(fact_financial_metrics[consensus_revenue_estimate]),\n    SUM(fact_financial_metrics[consensus_revenue_estimate]),\n    0\n) * 100",
+    description: "Quantifies percentage deviation of actual revenue from consensus analyst estimates to detect earnings surprise momentum."
   }
 ];
 
@@ -1250,7 +1262,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 42 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 44 DAX Measures Ready</span>
               </div>
             </div>
 
