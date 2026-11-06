@@ -3,6 +3,7 @@ import cors from 'cors';
 import pg from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -58,6 +59,33 @@ app.use('/api', (req, res, next) => {
   if (entry.count > RATE_LIMIT_MAX) {
     return res.status(429).json({ error: 'Too many requests. Please slow down.', retryAfterMs: RATE_LIMIT_WINDOW - (now - entry.windowStart) });
   }
+  next();
+});
+
+// Performance: Response Caching & ETag / 304 Conditional GET Middleware
+app.use('/api', (req, res, next) => {
+  if (req.method !== 'GET' || req.originalUrl.startsWith('/api/health')) {
+    return next();
+  }
+
+  res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
+
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    try {
+      const bodyStr = JSON.stringify(body);
+      const etag = `"${crypto.createHash('md5').update(bodyStr).digest('hex')}"`;
+      res.setHeader('ETag', etag);
+
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+    } catch {
+      // Fallback silently on serialization edge cases
+    }
+    return originalJson(body);
+  };
+
   next();
 });
 
