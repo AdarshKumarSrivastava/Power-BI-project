@@ -934,6 +934,16 @@
             "name": "Revenue Surprise Index",
             "expression": "DIVIDE(SUM(fact_financial_metrics[revenue]) - SUM(fact_financial_metrics[consensus_revenue_estimate]), SUM(fact_financial_metrics[consensus_revenue_estimate]), 0) * 100",
             "formatString": "0.00"
+          },
+          {
+            "name": "Beta Coefficient",
+            "expression": "DIVIDE(SUMX(fact_stock_prices, (fact_stock_prices[daily_return] - [Avg Market Return]) * (fact_stock_prices[daily_return] - [Avg Stock Return])), SUMX(fact_stock_prices, (fact_stock_prices[market_return] - [Avg Market Return]) ^ 2), 1)",
+            "formatString": "0.00"
+          },
+          {
+            "name": "30D Rolling Volatility",
+            "expression": "CALCULATE(STDEV.P(fact_stock_prices[daily_return]), DATESINPERIOD(dim_date[date], MAX(dim_date[date]), -30, DAY)) * SQRT(252) * 100",
+            "formatString": "0.00%"
           }
         ]
       }
