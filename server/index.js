@@ -196,6 +196,20 @@ const fallbackPeerBenchmarks = [
   { symbol: "HINDUNILVR", name: "Hindustan Unilever", sector: "FMCG", pe: 54.2, industryPe: 41.6, roe: 20.3, industryRoe: 23.1, evEbitda: 35.6, premiumDiscountPct: 30.29, recommendation: "Hold" }
 ];
 
+const fallbackRiskMatrix = [
+  { symbol: "TCS", name: "Tata Consultancy Services", sector: "IT", altmanZ: 7.82, piotroskiF: 8, betaCoeff: 0.72, volatility30d: 14.2, maxDrawdownPct: -8.5, riskCategory: "Low", compositeRiskScore: 15 },
+  { symbol: "INFY", name: "Infosys Ltd", sector: "IT", altmanZ: 6.94, piotroskiF: 7, betaCoeff: 0.81, volatility30d: 16.8, maxDrawdownPct: -12.1, riskCategory: "Low", compositeRiskScore: 22 },
+  { symbol: "HDFCBANK", name: "HDFC Bank Ltd", sector: "Banking", altmanZ: 3.45, piotroskiF: 8, betaCoeff: 0.95, volatility30d: 18.4, maxDrawdownPct: -15.2, riskCategory: "Low", compositeRiskScore: 28 },
+  { symbol: "ICICIBANK", name: "ICICI Bank Ltd", sector: "Banking", altmanZ: 3.52, piotroskiF: 8, betaCoeff: 1.08, volatility30d: 21.6, maxDrawdownPct: -18.9, riskCategory: "Moderate", compositeRiskScore: 38 },
+  { symbol: "RELIANCE", name: "Reliance Industries", sector: "Energy", altmanZ: 3.12, piotroskiF: 7, betaCoeff: 1.15, volatility30d: 22.4, maxDrawdownPct: -20.3, riskCategory: "Moderate", compositeRiskScore: 42 },
+  { symbol: "TATAMOTORS", name: "Tata Motors Ltd", sector: "Auto", altmanZ: 2.85, piotroskiF: 7, betaCoeff: 1.42, volatility30d: 28.9, maxDrawdownPct: -32.1, riskCategory: "High", compositeRiskScore: 62 },
+  { symbol: "MARUTI", name: "Maruti Suzuki India", sector: "Auto", altmanZ: 6.15, piotroskiF: 8, betaCoeff: 0.88, volatility30d: 17.2, maxDrawdownPct: -14.6, riskCategory: "Low", compositeRiskScore: 24 },
+  { symbol: "SUNPHARMA", name: "Sun Pharmaceutical", sector: "Pharma", altmanZ: 5.61, piotroskiF: 8, betaCoeff: 0.65, volatility30d: 19.1, maxDrawdownPct: -11.8, riskCategory: "Low", compositeRiskScore: 20 },
+  { symbol: "CIPLA", name: "Cipla Ltd", sector: "Pharma", altmanZ: 6.42, piotroskiF: 8, betaCoeff: 0.58, volatility30d: 15.6, maxDrawdownPct: -9.4, riskCategory: "Low", compositeRiskScore: 17 },
+  { symbol: "ITC", name: "ITC Ltd", sector: "FMCG", altmanZ: 8.45, piotroskiF: 9, betaCoeff: 0.52, volatility30d: 12.8, maxDrawdownPct: -6.2, riskCategory: "Low", compositeRiskScore: 10 },
+  { symbol: "HINDUNILVR", name: "Hindustan Unilever", sector: "FMCG", altmanZ: 7.21, piotroskiF: 7, betaCoeff: 0.48, volatility30d: 13.5, maxDrawdownPct: -7.8, riskCategory: "Low", compositeRiskScore: 14 }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -228,9 +242,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/growth', method: 'GET', description: 'Multi-period (3Y, 5Y, 10Y) sales & profit CAGR growth rates by sector' },
       { path: '/api/analytics/valuation', method: 'GET', description: 'Institutional sector valuation multiples (P/E, P/B, EV/EBITDA, forward P/E)' },
       { path: '/api/analytics/peers', method: 'GET', description: 'Institutional peer benchmarking against industry valuation and profitability medians' },
+      { path: '/api/analytics/risk-matrix', method: 'GET', description: 'Multi-factor risk classification matrix combining Altman Z, Piotroski F, and volatility scores' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -265,6 +280,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackValuationMetrics;
     } else if (dataset === 'peers') {
       payload = fallbackPeerBenchmarks;
+    } else if (dataset === 'risk') {
+      payload = fallbackRiskMatrix;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -653,6 +670,56 @@ app.get('/api/analytics/peers', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve peer benchmarking metrics', message: err.message });
+  }
+});
+
+// Multi-Factor Risk Classification Matrix Endpoint
+app.get('/api/analytics/risk-matrix', async (req, res) => {
+  try {
+    const { symbol, sector, riskCategory, sortBy = 'compositeRiskScore', order = 'asc' } = req.query;
+    let results = [...fallbackRiskMatrix];
+
+    if (symbol) {
+      const symLower = String(symbol).toLowerCase();
+      results = results.filter(r => r.symbol.toLowerCase() === symLower);
+    }
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(r => r.sector.toLowerCase().includes(secLower));
+    }
+
+    if (riskCategory && riskCategory !== 'All') {
+      const catLower = String(riskCategory).toLowerCase();
+      results = results.filter(r => r.riskCategory.toLowerCase() === catLower);
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    const summary = {
+      lowRisk: results.filter(r => r.riskCategory === 'Low').length,
+      moderateRisk: results.filter(r => r.riskCategory === 'Moderate').length,
+      highRisk: results.filter(r => r.riskCategory === 'High').length,
+      avgBeta: +(results.reduce((s, r) => s + r.betaCoeff, 0) / (results.length || 1)).toFixed(2),
+      avgVolatility30d: +(results.reduce((s, r) => s + r.volatility30d, 0) / (results.length || 1)).toFixed(1)
+    };
+
+    res.json({
+      riskMatrix: results,
+      summary,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve risk matrix', message: err.message });
   }
 });
 
