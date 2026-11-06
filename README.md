@@ -67,6 +67,7 @@ The system provides standard institutional financial measures:
 - **Composite Scoring**: `Piotroski F-Score (0-9)`, `Altman Z-Score`, `DuPont 3-Stage ROE Decomposition`
 - **Earnings Quality & Cash Flow**: `Sloan Accrual Ratio`, `Operating Cash Flow to Net Income`
 - **Growth & Momentum**: `Revenue CAGR 3Y`, `EPS Growth Rate`, `Price Momentum 12M`, `Revenue Surprise Index`
+- **Risk & Volatility**: `Beta Coefficient`, `30D Rolling Volatility`
 
 ---
 
@@ -84,9 +85,11 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/analytics/kpis` | Benchmark index KPIs across solvency (D/E, coverage), dividend metrics (yield, payout), and profitability. |
 | `GET` | `/api/analytics/growth` | Multi-period CAGR growth rates (3Y, 5Y, 10Y) for sales and profit with margin expansion by sector. Supports `?sector=` and `?period=3Y\|5Y\|10Y`. |
 | `GET` | `/api/analytics/valuation` | Institutional sector valuation multiples (P/E, P/B, EV/EBITDA, forward P/E, market cap, div yield). Supports `?sector=` and `?sortBy=pe\|pb\|evEbitda\|forwardPE\|marketCapCrores`. |
+| `GET` | `/api/analytics/peers` | Institutional peer benchmarking against industry valuation and profitability medians. Supports `?symbol=`, `?sector=`, `?recommendation=` and `?sortBy=`. |
+| `GET` | `/api/analytics/risk-matrix` | Multi-factor risk classification (Altman Z, Piotroski F, beta, volatility, max drawdown). Supports `?symbol=`, `?sector=`, `?riskCategory=Low\|Moderate\|High`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk` and `?format=json\|csv`. |
 
 ---
 
