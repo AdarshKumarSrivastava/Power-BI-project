@@ -304,6 +304,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     description: "Measures 12-month trailing price return momentum to identify sector leaders and laggards in price performance."
   },
   {
+    name: "Beta Coefficient",
+    category: "Valuation",
+    formula: "Beta Coefficient = \nDIVIDE(\n    SUMX(fact_stock_prices, (fact_stock_prices[daily_return] - [Avg Market Return]) * (fact_stock_prices[daily_return] - [Avg Stock Return])),\n    SUMX(fact_stock_prices, (fact_stock_prices[market_return] - [Avg Market Return]) ^ 2),\n    1\n)",
+    description: "Measures systematic market risk sensitivity; beta > 1 indicates higher volatility than benchmark index."
+  },
+  {
+    name: "30D Rolling Volatility",
+    category: "Valuation",
+    formula: "30D Rolling Volatility = \nCALCULATE(\n    STDEV.P(fact_stock_prices[daily_return]),\n    DATESINPERIOD(dim_date[date], MAX(dim_date[date]), -30, DAY)\n) * SQRT(252) * 100",
+    description: "Annualized 30-day historical volatility for risk-adjusted portfolio construction and VaR estimation."
+  },
+  {
     name: "Revenue Surprise Index",
     category: "Growth Analytics",
     formula: "Revenue Surprise Index = \nDIVIDE(\n    SUM(fact_financial_metrics[revenue]) - SUM(fact_financial_metrics[consensus_revenue_estimate]),\n    SUM(fact_financial_metrics[consensus_revenue_estimate]),\n    0\n) * 100",
@@ -937,6 +949,33 @@ function App() {
                 </div>
               </div>
             </div>
+
+            {/* Risk Heatmap Section */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">Sector Risk Heatmap — Beta vs Volatility</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', padding: '16px 0' }}>
+                {filteredSectors.map((s) => {
+                  const beta = s.pe > 30 ? 0.55 : s.pe > 20 ? 0.85 : s.pe > 15 ? 1.1 : 1.35;
+                  const vol = s.margin > 20 ? 14.5 : s.margin > 15 ? 19.2 : s.margin > 10 ? 24.8 : 29.5;
+                  const riskScore = Math.round(beta * 30 + vol * 0.8);
+                  const riskColor = riskScore < 40 ? '#10b981' : riskScore < 55 ? '#f59e0b' : '#ef4444';
+                  return (
+                    <div key={s.name} style={{
+                      background: `linear-gradient(135deg, ${riskColor}15, ${riskColor}08)`,
+                      border: `1px solid ${riskColor}40`,
+                      borderRadius: '12px', padding: '16px', textAlign: 'center'
+                    }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '8px', color: 'var(--text-primary)' }}>{s.name}</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: riskColor }}>{riskScore}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>β {beta.toFixed(2)} · σ {vol.toFixed(1)}%</div>
+                      <div style={{ fontSize: '0.7rem', marginTop: '6px', color: riskColor, fontWeight: 600 }}>
+                        {riskScore < 40 ? 'LOW RISK' : riskScore < 55 ? 'MODERATE' : 'HIGH RISK'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
@@ -1262,7 +1301,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 44 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 46 DAX Measures Ready</span>
               </div>
             </div>
 
