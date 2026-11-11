@@ -238,6 +238,15 @@ const fallbackRiskMatrix = [
   { symbol: "HINDUNILVR", name: "Hindustan Unilever", sector: "FMCG", altmanZ: 7.21, piotroskiF: 7, betaCoeff: 0.48, volatility30d: 13.5, maxDrawdownPct: -7.8, riskCategory: "Low", compositeRiskScore: 14 }
 ];
 
+const fallbackDuPontMetrics = [
+  { sector: "Information Tech", netProfitMargin: 21.5, assetTurnover: 0.88, financialLeverage: 1.25, roe: 23.65, primaryDriver: "Net Margin" },
+  { sector: "Banking & Finance", netProfitMargin: 18.2, assetTurnover: 0.14, financialLeverage: 6.80, roe: 17.33, primaryDriver: "Financial Leverage" },
+  { sector: "Automobile", netProfitMargin: 11.4, assetTurnover: 1.15, financialLeverage: 1.44, roe: 18.88, primaryDriver: "Asset Turnover" },
+  { sector: "Pharma & Healthcare", netProfitMargin: 19.8, assetTurnover: 0.72, financialLeverage: 1.28, roe: 18.25, primaryDriver: "Net Margin" },
+  { sector: "Oil & Gas / Energy", netProfitMargin: 14.6, assetTurnover: 0.78, financialLeverage: 1.62, roe: 18.45, primaryDriver: "Asset Turnover" },
+  { sector: "FMCG / Consumer", netProfitMargin: 23.1, assetTurnover: 1.22, financialLeverage: 1.18, roe: 33.25, primaryDriver: "Balanced" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -271,9 +280,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/valuation', method: 'GET', description: 'Institutional sector valuation multiples (P/E, P/B, EV/EBITDA, forward P/E)' },
       { path: '/api/analytics/peers', method: 'GET', description: 'Institutional peer benchmarking against industry valuation and profitability medians' },
       { path: '/api/analytics/risk-matrix', method: 'GET', description: 'Multi-factor risk classification matrix combining Altman Z, Piotroski F, and volatility scores' },
+      { path: '/api/analytics/dupont', method: 'GET', description: 'DuPont 3-stage ROE decomposition (Net Margin, Asset Turnover, Financial Leverage)' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -310,6 +320,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackPeerBenchmarks;
     } else if (dataset === 'risk') {
       payload = fallbackRiskMatrix;
+    } else if (dataset === 'dupont') {
+      payload = fallbackDuPontMetrics;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -748,6 +760,37 @@ app.get('/api/analytics/risk-matrix', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve risk matrix', message: err.message });
+  }
+});
+
+// DuPont 3-Stage ROE Decomposition Endpoint
+app.get('/api/analytics/dupont', async (req, res) => {
+  try {
+    const { sector, sortBy = 'roe', order = 'desc' } = req.query;
+    let results = [...fallbackDuPontMetrics];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(d => d.sector.toLowerCase().includes(secLower));
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      dupontBreakdown: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve DuPont analytics', message: err.message });
   }
 });
 
