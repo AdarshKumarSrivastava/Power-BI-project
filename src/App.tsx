@@ -320,6 +320,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Growth Analytics",
     formula: "Revenue Surprise Index = \nDIVIDE(\n    SUM(fact_financial_metrics[revenue]) - SUM(fact_financial_metrics[consensus_revenue_estimate]),\n    SUM(fact_financial_metrics[consensus_revenue_estimate]),\n    0\n) * 100",
     description: "Quantifies percentage deviation of actual revenue from consensus analyst estimates to detect earnings surprise momentum."
+  },
+  {
+    name: "Asset Turnover",
+    category: "Capital Efficiency",
+    formula: "Asset Turnover = \nDIVIDE(SUM(fact_profit_loss[sales]), SUM(fact_balance_sheet[total_assets]), 0)",
+    description: "Measures the efficiency of a company\'s assets in generating revenue; higher values denote superior operational efficiency."
+  },
+  {
+    name: "Financial Leverage Multiplier",
+    category: "Capital Efficiency",
+    formula: "Financial Leverage Multiplier = \nDIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0)",
+    description: "DuPont equity multiplier quantifying the proportion of assets financed by equity versus debt liabilities."
   }
 ];
 
@@ -976,6 +988,51 @@ function App() {
                 })}
               </div>
             </div>
+
+            {/* DuPont 3-Stage Decomposition Breakdown */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">DuPont 3-Stage ROE Decomposition Matrix</h3>
+              <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+                <table className="data-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <th style={{ padding: '10px 12px' }}>Sector</th>
+                      <th style={{ padding: '10px 12px' }}>Net Profit Margin</th>
+                      <th style={{ padding: '10px 12px' }}>Asset Turnover</th>
+                      <th style={{ padding: '10px 12px' }}>Equity Multiplier</th>
+                      <th style={{ padding: '10px 12px' }}>DuPont ROE</th>
+                      <th style={{ padding: '10px 12px' }}>Primary Driver</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { sector: "Information Tech", margin: 21.5, turnover: "0.88x", leverage: "1.25x", roe: "23.6%", driver: "Net Margin", color: "#3b82f6" },
+                      { sector: "Banking & Finance", margin: 18.2, turnover: "0.14x", leverage: "6.80x", roe: "17.3%", driver: "Financial Leverage", color: "#8b5cf6" },
+                      { sector: "Automobile", margin: 11.4, turnover: "1.15x", leverage: "1.44x", roe: "18.9%", driver: "Asset Turnover", color: "#f59e0b" },
+                      { sector: "Pharma & Healthcare", margin: 19.8, turnover: "0.72x", leverage: "1.28x", roe: "18.3%", driver: "Net Margin", color: "#10b981" },
+                      { sector: "Oil & Gas / Energy", margin: 14.6, turnover: "0.78x", leverage: "1.62x", roe: "18.5%", driver: "Asset Turnover", color: "#ef4444" },
+                      { sector: "FMCG / Consumer", margin: 23.1, turnover: "1.22x", leverage: "1.18x", roe: "33.3%", driver: "Balanced", color: "#ec4899" }
+                    ].map((row) => (
+                      <tr key={row.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600 }}>{row.sector}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-teal)' }}>{row.margin}%</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-blue)' }}>{row.turnover}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-purple)' }}>{row.leverage}</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--success)' }}>{row.roe}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{
+                            padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
+                            backgroundColor: `${row.color}20`, color: row.color, border: `1px solid ${row.color}40`
+                          }}>
+                            {row.driver}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1301,7 +1358,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 46 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 48 DAX Measures Ready</span>
               </div>
             </div>
 
