@@ -247,6 +247,15 @@ const fallbackDuPontMetrics = [
   { sector: "FMCG / Consumer", netProfitMargin: 23.1, assetTurnover: 1.22, financialLeverage: 1.18, roe: 33.25, primaryDriver: "Balanced" }
 ];
 
+const fallbackWorkingCapital = [
+  { sector: "Information Tech", dsoDays: 68, dioDays: 0, dpoDays: 24, cccDays: 44, workingCapitalCycle: "Efficient" },
+  { sector: "Banking & Finance", dsoDays: 0, dioDays: 0, dpoDays: 0, cccDays: 0, workingCapitalCycle: "N/A (Financials)" },
+  { sector: "Automobile", dsoDays: 32, dioDays: 45, dpoDays: 62, cccDays: 15, workingCapitalCycle: "Lean" },
+  { sector: "Pharma & Healthcare", dsoDays: 85, dioDays: 98, dpoDays: 56, cccDays: 127, workingCapitalCycle: "Extended" },
+  { sector: "Oil & Gas / Energy", dsoDays: 28, dioDays: 34, dpoDays: 48, cccDays: 14, workingCapitalCycle: "Lean" },
+  { sector: "FMCG / Consumer", dsoDays: 18, dioDays: 52, dpoDays: 78, cccDays: -8, workingCapitalCycle: "Negative Working Capital" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -281,9 +290,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/peers', method: 'GET', description: 'Institutional peer benchmarking against industry valuation and profitability medians' },
       { path: '/api/analytics/risk-matrix', method: 'GET', description: 'Multi-factor risk classification matrix combining Altman Z, Piotroski F, and volatility scores' },
       { path: '/api/analytics/dupont', method: 'GET', description: 'DuPont 3-stage ROE decomposition (Net Margin, Asset Turnover, Financial Leverage)' },
+      { path: '/api/analytics/working-capital', method: 'GET', description: 'Working capital operating cycle metrics (CCC, DSO, DIO, DPO)' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -322,6 +332,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackRiskMatrix;
     } else if (dataset === 'dupont') {
       payload = fallbackDuPontMetrics;
+    } else if (dataset === 'working-capital') {
+      payload = fallbackWorkingCapital;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -791,6 +803,42 @@ app.get('/api/analytics/dupont', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve DuPont analytics', message: err.message });
+  }
+});
+
+// Working Capital Operating Cycle Endpoint
+app.get('/api/analytics/working-capital', async (req, res) => {
+  try {
+    const { sector, cycle, sortBy = 'cccDays', order = 'asc' } = req.query;
+    let results = [...fallbackWorkingCapital];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(w => w.sector.toLowerCase().includes(secLower));
+    }
+
+    if (cycle && cycle !== 'All') {
+      const cycleLower = String(cycle).toLowerCase();
+      results = results.filter(w => w.workingCapitalCycle.toLowerCase().includes(cycleLower));
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      workingCapital: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve working capital analytics', message: err.message });
   }
 });
 

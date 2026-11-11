@@ -88,9 +88,10 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/analytics/peers` | Institutional peer benchmarking against industry valuation and profitability medians. Supports `?symbol=`, `?sector=`, `?recommendation=` and `?sortBy=`. |
 | `GET` | `/api/analytics/risk-matrix` | Multi-factor risk classification (Altman Z, Piotroski F, beta, volatility, max drawdown). Supports `?symbol=`, `?sector=`, `?riskCategory=Low\|Moderate\|High`. |
 | `GET` | `/api/analytics/dupont` | DuPont 3-stage ROE decomposition (Net Profit Margin, Asset Turnover, Financial Leverage) by sector. Supports `?sector=` and `?sortBy=roe\|netProfitMargin\|assetTurnover\|financialLeverage`. |
+| `GET` | `/api/analytics/working-capital` | Working capital operating cycle metrics (CCC, DSO, DIO, DPO) by sector. Supports `?sector=` and `?cycle=Efficient\|Lean\|Extended`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital` and `?format=json\|csv`. |
 
 ---
 
