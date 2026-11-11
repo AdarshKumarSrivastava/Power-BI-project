@@ -60,7 +60,7 @@ python generate_powerbi_models.py
 ## 📊 Comprehensive DAX Repository
 
 The system provides standard institutional financial measures:
-- **Profitability & Capital Efficiency**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`, `CFROIC %`
+- **Profitability & Capital Efficiency**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`, `CFROIC %`, `Asset Turnover`, `Financial Leverage Multiplier`
 - **Valuation**: `P/E Ratio`, `Price to Book (P/B) Ratio`, `EV to EBITDA`, `PEG Ratio`, `Free Cash Flow Yield %`
 - **Solvency, Liquidity & Cash Flow**: `Debt to Equity Ratio`, `Current Ratio`, `Interest Coverage Ratio`, `Net Debt to Equity`, `Operating Cash Flow Margin %`, `Cash Flow to Debt Ratio`, `Free Cash Flow`
 - **Shareholder Return**: `Dividend Yield %`, `Dividend Payout Ratio`, `Dividend Coverage Ratio`, `Earnings Per Share (EPS)`, `Consistent Dividend Payers Flag`
@@ -87,9 +87,10 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/analytics/valuation` | Institutional sector valuation multiples (P/E, P/B, EV/EBITDA, forward P/E, market cap, div yield). Supports `?sector=` and `?sortBy=pe\|pb\|evEbitda\|forwardPE\|marketCapCrores`. |
 | `GET` | `/api/analytics/peers` | Institutional peer benchmarking against industry valuation and profitability medians. Supports `?symbol=`, `?sector=`, `?recommendation=` and `?sortBy=`. |
 | `GET` | `/api/analytics/risk-matrix` | Multi-factor risk classification (Altman Z, Piotroski F, beta, volatility, max drawdown). Supports `?symbol=`, `?sector=`, `?riskCategory=Low\|Moderate\|High`. |
+| `GET` | `/api/analytics/dupont` | DuPont 3-stage ROE decomposition (Net Profit Margin, Asset Turnover, Financial Leverage) by sector. Supports `?sector=` and `?sortBy=roe\|netProfitMargin\|assetTurnover\|financialLeverage`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont` and `?format=json\|csv`. |
 
 ---
 
