@@ -281,7 +281,9 @@ def generate_dashboards():
         {"name": "Price Momentum 12M", "expression": "DIVIDE(SUM(fact_stock_prices[closing_price]) - CALCULATE(SUM(fact_stock_prices[closing_price]), DATEADD(dim_date[date], -12, MONTH)), CALCULATE(SUM(fact_stock_prices[closing_price]), DATEADD(dim_date[date], -12, MONTH)), 0)", "formatString": "0.00%"},
         {"name": "Revenue Surprise Index", "expression": "DIVIDE(SUM(fact_financial_metrics[revenue]) - SUM(fact_financial_metrics[consensus_revenue_estimate]), SUM(fact_financial_metrics[consensus_revenue_estimate]), 0) * 100", "formatString": "0.00"},
         {"name": "Beta Coefficient", "expression": "DIVIDE(SUMX(fact_stock_prices, (fact_stock_prices[daily_return] - [Avg Market Return]) * (fact_stock_prices[daily_return] - [Avg Stock Return])), SUMX(fact_stock_prices, (fact_stock_prices[market_return] - [Avg Market Return]) ^ 2), 1)", "formatString": "0.00"},
-        {"name": "30D Rolling Volatility", "expression": "CALCULATE(STDEV.P(fact_stock_prices[daily_return]), DATESINPERIOD(dim_date[date], MAX(dim_date[date]), -30, DAY)) * SQRT(252) * 100", "formatString": "0.00%"}
+        {"name": "30D Rolling Volatility", "expression": "CALCULATE(STDEV.P(fact_stock_prices[daily_return]), DATESINPERIOD(dim_date[date], MAX(dim_date[date]), -30, DAY)) * SQRT(252) * 100", "formatString": "0.00%"},
+        {"name": "Asset Turnover", "expression": "DIVIDE(SUM(fact_profit_loss[sales]), SUM(fact_balance_sheet[total_assets]), 0)", "formatString": "0.00"},
+        {"name": "Financial Leverage Multiplier", "expression": "DIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0)", "formatString": "0.00"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))

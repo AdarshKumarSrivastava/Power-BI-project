@@ -944,6 +944,16 @@
             "name": "30D Rolling Volatility",
             "expression": "CALCULATE(STDEV.P(fact_stock_prices[daily_return]), DATESINPERIOD(dim_date[date], MAX(dim_date[date]), -30, DAY)) * SQRT(252) * 100",
             "formatString": "0.00%"
+          },
+          {
+            "name": "Asset Turnover",
+            "expression": "DIVIDE(SUM(fact_profit_loss[sales]), SUM(fact_balance_sheet[total_assets]), 0)",
+            "formatString": "0.00"
+          },
+          {
+            "name": "Financial Leverage Multiplier",
+            "expression": "DIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0)",
+            "formatString": "0.00"
           }
         ]
       }
