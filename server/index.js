@@ -256,6 +256,15 @@ const fallbackWorkingCapital = [
   { sector: "FMCG / Consumer", dsoDays: 18, dioDays: 52, dpoDays: 78, cccDays: -8, workingCapitalCycle: "Negative Working Capital" }
 ];
 
+const fallbackDividendAnalytics = [
+  { sector: "Information Tech", avgYieldPct: 2.1, payoutRatioPct: 48.5, coverageRatio: 2.06, cagr5y: 14.2, sustainabilityScore: 88, status: "Sustainable Growth" },
+  { sector: "Banking & Finance", avgYieldPct: 1.4, payoutRatioPct: 22.8, coverageRatio: 4.38, cagr5y: 18.5, sustainabilityScore: 92, status: "High Coverage" },
+  { sector: "Automobile", avgYieldPct: 1.2, payoutRatioPct: 28.4, coverageRatio: 3.52, cagr5y: 8.6, sustainabilityScore: 78, status: "Cyclical" },
+  { sector: "Pharma & Healthcare", avgYieldPct: 0.9, payoutRatioPct: 18.2, coverageRatio: 5.49, cagr5y: 11.4, sustainabilityScore: 85, status: "Reinvestment Focus" },
+  { sector: "Oil & Gas / Energy", avgYieldPct: 3.8, payoutRatioPct: 42.6, coverageRatio: 2.35, cagr5y: 6.8, sustainabilityScore: 82, status: "High Yield" },
+  { sector: "FMCG / Consumer", avgYieldPct: 2.6, payoutRatioPct: 74.5, coverageRatio: 1.34, cagr5y: 12.1, sustainabilityScore: 90, status: "Cash Cow" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -291,9 +300,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/risk-matrix', method: 'GET', description: 'Multi-factor risk classification matrix combining Altman Z, Piotroski F, and volatility scores' },
       { path: '/api/analytics/dupont', method: 'GET', description: 'DuPont 3-stage ROE decomposition (Net Margin, Asset Turnover, Financial Leverage)' },
       { path: '/api/analytics/working-capital', method: 'GET', description: 'Working capital operating cycle metrics (CCC, DSO, DIO, DPO)' },
+      { path: '/api/analytics/dividend-payout', method: 'GET', description: 'Dividend sustainability analytics, coverage ratios, and 5Y compounding growth' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -334,6 +344,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackDuPontMetrics;
     } else if (dataset === 'working-capital') {
       payload = fallbackWorkingCapital;
+    } else if (dataset === 'dividend') {
+      payload = fallbackDividendAnalytics;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -839,6 +851,42 @@ app.get('/api/analytics/working-capital', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve working capital analytics', message: err.message });
+  }
+});
+
+// Dividend Payout & Sustainability Analytics Endpoint
+app.get('/api/analytics/dividend-payout', async (req, res) => {
+  try {
+    const { sector, status, sortBy = 'avgYieldPct', order = 'desc' } = req.query;
+    let results = [...fallbackDividendAnalytics];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(d => d.sector.toLowerCase().includes(secLower));
+    }
+
+    if (status && status !== 'All') {
+      const statLower = String(status).toLowerCase();
+      results = results.filter(d => d.status.toLowerCase().includes(statLower));
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      dividends: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve dividend analytics', message: err.message });
   }
 });
 
