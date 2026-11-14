@@ -283,7 +283,9 @@ def generate_dashboards():
         {"name": "Beta Coefficient", "expression": "DIVIDE(SUMX(fact_stock_prices, (fact_stock_prices[daily_return] - [Avg Market Return]) * (fact_stock_prices[daily_return] - [Avg Stock Return])), SUMX(fact_stock_prices, (fact_stock_prices[market_return] - [Avg Market Return]) ^ 2), 1)", "formatString": "0.00"},
         {"name": "30D Rolling Volatility", "expression": "CALCULATE(STDEV.P(fact_stock_prices[daily_return]), DATESINPERIOD(dim_date[date], MAX(dim_date[date]), -30, DAY)) * SQRT(252) * 100", "formatString": "0.00%"},
         {"name": "Asset Turnover", "expression": "DIVIDE(SUM(fact_profit_loss[sales]), SUM(fact_balance_sheet[total_assets]), 0)", "formatString": "0.00"},
-        {"name": "Financial Leverage Multiplier", "expression": "DIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0)", "formatString": "0.00"}
+        {"name": "Financial Leverage Multiplier", "expression": "DIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0)", "formatString": "0.00"},
+        {"name": "Cash Conversion Cycle (Days)", "expression": "DIVIDE(SUM(fact_balance_sheet[trade_receivables]), SUM(fact_profit_loss[sales]), 0) * 365 + DIVIDE(SUM(fact_balance_sheet[inventories]), SUM(fact_profit_loss[cost_of_goods_sold]), 0) * 365 - DIVIDE(SUM(fact_balance_sheet[trade_payables]), SUM(fact_profit_loss[cost_of_goods_sold]), 0) * 365", "formatString": "#,0"},
+        {"name": "Net Debt to EBITDA", "expression": "DIVIDE(SUM(fact_balance_sheet[borrowings]) - SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_profit_loss[operating_profit]), 0)", "formatString": "0.00"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
