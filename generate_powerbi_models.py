@@ -285,7 +285,9 @@ def generate_dashboards():
         {"name": "Asset Turnover", "expression": "DIVIDE(SUM(fact_profit_loss[sales]), SUM(fact_balance_sheet[total_assets]), 0)", "formatString": "0.00"},
         {"name": "Financial Leverage Multiplier", "expression": "DIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0)", "formatString": "0.00"},
         {"name": "Cash Conversion Cycle (Days)", "expression": "DIVIDE(SUM(fact_balance_sheet[trade_receivables]), SUM(fact_profit_loss[sales]), 0) * 365 + DIVIDE(SUM(fact_balance_sheet[inventories]), SUM(fact_profit_loss[cost_of_goods_sold]), 0) * 365 - DIVIDE(SUM(fact_balance_sheet[trade_payables]), SUM(fact_profit_loss[cost_of_goods_sold]), 0) * 365", "formatString": "#,0"},
-        {"name": "Net Debt to EBITDA", "expression": "DIVIDE(SUM(fact_balance_sheet[borrowings]) - SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_profit_loss[operating_profit]), 0)", "formatString": "0.00"}
+        {"name": "Net Debt to EBITDA", "expression": "DIVIDE(SUM(fact_balance_sheet[borrowings]) - SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_profit_loss[operating_profit]), 0)", "formatString": "0.00"},
+        {"name": "Dividend Payout %", "expression": "DIVIDE(SUM(fact_cash_flow[financing_activity_dividends]), SUM(fact_profit_loss[net_profit]), 0) * 100", "formatString": "0.00%"},
+        {"name": "Dividend Growth Rate 5Y", "expression": "CALCULATE(AVERAGE(fact_analysis[dividend_growth_cagr_5y]), fact_analysis[period_label] = \"5Y\")", "formatString": "0.00%"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
