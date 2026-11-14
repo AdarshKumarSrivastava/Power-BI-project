@@ -344,6 +344,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Debt & Leverage",
     formula: "Net Debt to EBITDA = \nDIVIDE(\n    SUM(fact_balance_sheet[borrowings]) - SUM(fact_balance_sheet[cash_and_bank]),\n    SUM(fact_profit_loss[operating_profit]),\n    0\n)",
     description: "Solvency and leverage multiple showing the number of years required to pay down net debt using operating cash flow."
+  },
+  {
+    name: "Dividend Payout %",
+    category: "Dividend & Returns",
+    formula: "Dividend Payout % = \nDIVIDE(SUM(fact_cash_flow[financing_activity_dividends]), SUM(fact_profit_loss[net_profit]), 0) * 100",
+    description: "Evaluates the proportion of net earnings distributed to shareholders as dividends."
+  },
+  {
+    name: "Dividend Growth Rate 5Y",
+    category: "Dividend & Returns",
+    formula: "Dividend Growth Rate 5Y = \nCALCULATE(AVERAGE(fact_analysis[dividend_growth_cagr_5y]), fact_analysis[period_label] = \"5Y\")",
+    description: "Compound annual growth rate of dividend distributions over a 5-year multi-cycle period."
   }
 ];
 
@@ -1378,6 +1390,51 @@ function App() {
                 </div>
               </div>
             </div>
+
+            {/* Dividend Sustainability & Payout Matrix */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">Dividend Sustainability & Growth Matrix</h3>
+              <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+                <table className="data-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <th style={{ padding: '10px 12px' }}>Sector</th>
+                      <th style={{ padding: '10px 12px' }}>Avg Yield</th>
+                      <th style={{ padding: '10px 12px' }}>Payout Ratio</th>
+                      <th style={{ padding: '10px 12px' }}>Coverage Ratio</th>
+                      <th style={{ padding: '10px 12px' }}>5Y Div CAGR</th>
+                      <th style={{ padding: '10px 12px' }}>Health Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { sector: "Information Tech", yield: "2.1%", payout: "48.5%", coverage: "2.06x", cagr: "14.2%", status: "Sustainable Growth", color: "#3b82f6" },
+                      { sector: "Banking & Finance", yield: "1.4%", payout: "22.8%", coverage: "4.38x", cagr: "18.5%", status: "High Coverage", color: "#8b5cf6" },
+                      { sector: "Automobile", yield: "1.2%", payout: "28.4%", coverage: "3.52x", cagr: "8.6%", status: "Cyclical", color: "#f59e0b" },
+                      { sector: "Pharma & Healthcare", yield: "0.9%", payout: "18.2%", coverage: "5.49x", cagr: "11.4%", status: "Reinvestment Focus", color: "#10b981" },
+                      { sector: "Oil & Gas / Energy", yield: "3.8%", payout: "42.6%", coverage: "2.35x", cagr: "6.8%", status: "High Yield", color: "#06b6d4" },
+                      { sector: "FMCG / Consumer", yield: "2.6%", payout: "74.5%", coverage: "1.34x", cagr: "12.1%", status: "Cash Cow", color: "#ec4899" }
+                    ].map((row) => (
+                      <tr key={row.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600 }}>{row.sector}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--success)' }}>{row.yield}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-blue)' }}>{row.payout}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-teal)' }}>{row.coverage}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-purple)' }}>{row.cagr}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{
+                            padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
+                            backgroundColor: `${row.color}20`, color: row.color, border: `1px solid ${row.color}40`
+                          }}>
+                            {row.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1396,7 +1453,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 50 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 52 DAX Measures Ready</span>
               </div>
             </div>
 
