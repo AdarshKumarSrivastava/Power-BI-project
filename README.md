@@ -62,7 +62,7 @@ python generate_powerbi_models.py
 The system provides standard institutional financial measures:
 - **Profitability & Capital Efficiency**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`, `CFROIC %`, `Asset Turnover`, `Financial Leverage Multiplier`
 - **Valuation**: `P/E Ratio`, `Price to Book (P/B) Ratio`, `EV to EBITDA`, `PEG Ratio`, `Free Cash Flow Yield %`
-- **Solvency, Liquidity & Cash Flow**: `Debt to Equity Ratio`, `Current Ratio`, `Interest Coverage Ratio`, `Net Debt to Equity`, `Operating Cash Flow Margin %`, `Cash Flow to Debt Ratio`, `Free Cash Flow`
+- **Solvency, Liquidity & Cash Flow**: `Debt to Equity Ratio`, `Current Ratio`, `Interest Coverage Ratio`, `Net Debt to Equity`, `Net Debt to EBITDA`, `Operating Cash Flow Margin %`, `Cash Flow to Debt Ratio`, `Free Cash Flow`, `Cash Conversion Cycle (Days)`
 - **Shareholder Return**: `Dividend Yield %`, `Dividend Payout Ratio`, `Dividend Coverage Ratio`, `Earnings Per Share (EPS)`, `Consistent Dividend Payers Flag`
 - **Composite Scoring**: `Piotroski F-Score (0-9)`, `Altman Z-Score`, `DuPont 3-Stage ROE Decomposition`
 - **Earnings Quality & Cash Flow**: `Sloan Accrual Ratio`, `Operating Cash Flow to Net Income`
