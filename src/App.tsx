@@ -332,6 +332,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Capital Efficiency",
     formula: "Financial Leverage Multiplier = \nDIVIDE(SUM(fact_balance_sheet[total_assets]), [Reserves], 0)",
     description: "DuPont equity multiplier quantifying the proportion of assets financed by equity versus debt liabilities."
+  },
+  {
+    name: "Cash Conversion Cycle (Days)",
+    category: "Cash Flow",
+    formula: "Cash Conversion Cycle (Days) = \nDIVIDE(SUM(fact_balance_sheet[trade_receivables]), SUM(fact_profit_loss[sales]), 0) * 365 +\nDIVIDE(SUM(fact_balance_sheet[inventories]), SUM(fact_profit_loss[cost_of_goods_sold]), 0) * 365 -\nDIVIDE(SUM(fact_balance_sheet[trade_payables]), SUM(fact_profit_loss[cost_of_goods_sold]), 0) * 365",
+    description: "Operating cycle measure in days representing the time taken to convert inventory and accounts receivable into cash."
+  },
+  {
+    name: "Net Debt to EBITDA",
+    category: "Debt & Leverage",
+    formula: "Net Debt to EBITDA = \nDIVIDE(\n    SUM(fact_balance_sheet[borrowings]) - SUM(fact_balance_sheet[cash_and_bank]),\n    SUM(fact_profit_loss[operating_profit]),\n    0\n)",
+    description: "Solvency and leverage multiple showing the number of years required to pay down net debt using operating cash flow."
   }
 ];
 
@@ -1033,6 +1045,32 @@ function App() {
                 </table>
               </div>
             </div>
+
+            {/* Working Capital Cycle Analysis Card */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">Working Capital & Cash Conversion Cycle (CCC) Breakdown</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', padding: '16px 0' }}>
+                {[
+                  { sector: "Information Tech", ccc: 44, dso: 68, dio: 0, dpo: 24, status: "Efficient", color: "#3b82f6" },
+                  { sector: "Banking & Finance", ccc: 0, dso: 0, dio: 0, dpo: 0, status: "N/A (Financials)", color: "#8b5cf6" },
+                  { sector: "Automobile", ccc: 15, dso: 32, dio: 45, dpo: 62, status: "Lean", color: "#10b981" },
+                  { sector: "Pharma & Healthcare", ccc: 127, dso: 85, dio: 98, dpo: 56, status: "Extended", color: "#f59e0b" },
+                  { sector: "Oil & Gas / Energy", ccc: 14, dso: 28, dio: 34, dpo: 48, status: "Lean", color: "#06b6d4" },
+                  { sector: "FMCG / Consumer", ccc: -8, dso: 18, dio: 52, dpo: 78, status: "Negative Working Capital", color: "#ec4899" }
+                ].map((item) => (
+                  <div key={item.sector} style={{
+                    background: `linear-gradient(135deg, ${item.color}15, ${item.color}05)`,
+                    border: `1px solid ${item.color}35`,
+                    borderRadius: '12px', padding: '14px', textAlign: 'center'
+                  }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)', marginBottom: '6px' }}>{item.sector}</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: item.color }}>{item.ccc} Days</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>DSO: {item.dso}d · DIO: {item.dio}d · DPO: {item.dpo}d</div>
+                    <div style={{ fontSize: '0.7rem', marginTop: '6px', color: item.color, fontWeight: 600 }}>{item.status}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -1358,7 +1396,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 48 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 50 DAX Measures Ready</span>
               </div>
             </div>
 
