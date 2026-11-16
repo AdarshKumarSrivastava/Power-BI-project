@@ -60,7 +60,7 @@ python generate_powerbi_models.py
 ## 📊 Comprehensive DAX Repository
 
 The system provides standard institutional financial measures:
-- **Profitability & Capital Efficiency**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`, `CFROIC %`, `Asset Turnover`, `Financial Leverage Multiplier`
+- **Profitability & Capital Efficiency**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`, `CFROIC %`, `Asset Turnover`, `Financial Leverage Multiplier`, `Economic Value Added (EVA)`, `Weighted Average Cost of Capital (WACC)`
 - **Valuation**: `P/E Ratio`, `Price to Book (P/B) Ratio`, `EV to EBITDA`, `PEG Ratio`, `Free Cash Flow Yield %`
 - **Solvency, Liquidity & Cash Flow**: `Debt to Equity Ratio`, `Current Ratio`, `Interest Coverage Ratio`, `Net Debt to Equity`, `Net Debt to EBITDA`, `Operating Cash Flow Margin %`, `Cash Flow to Debt Ratio`, `Free Cash Flow`, `Cash Conversion Cycle (Days)`
 - **Shareholder Return**: `Dividend Yield %`, `Dividend Payout Ratio`, `Dividend Payout %`, `Dividend Coverage Ratio`, `Earnings Per Share (EPS)`, `Consistent Dividend Payers Flag`, `Dividend Growth Rate 5Y`
@@ -90,9 +90,10 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/analytics/dupont` | DuPont 3-stage ROE decomposition (Net Profit Margin, Asset Turnover, Financial Leverage) by sector. Supports `?sector=` and `?sortBy=roe\|netProfitMargin\|assetTurnover\|financialLeverage`. |
 | `GET` | `/api/analytics/working-capital` | Working capital operating cycle metrics (CCC, DSO, DIO, DPO) by sector. Supports `?sector=` and `?cycle=Efficient\|Lean\|Extended`. |
 | `GET` | `/api/analytics/dividend-payout` | Dividend sustainability metrics, payout ratios, coverage, and 5Y compounding growth by sector. Supports `?sector=` and `?status=`. |
+| `GET` | `/api/analytics/scenario-simulation` | Macroeconomic stress testing and scenario shock simulation across base, bull, and bear cases. Supports `?sector=` and `?rating=`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital\|dividend` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital\|dividend\|scenario` and `?format=json\|csv`. |
 
 ---
 
