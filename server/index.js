@@ -30,15 +30,25 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Request logger for debugging API traffic
+// Request logger and latency benchmark header
 app.use((req, res, next) => {
-  const start = Date.now();
+  const start = process.hrtime.bigint();
   res.on('finish', () => {
-    const duration = Date.now() - start;
+    const durationMs = Number(process.hrtime.bigint() - start) / 1e6;
     if (req.originalUrl.startsWith('/api')) {
-      console.log(`[API] ${req.method} ${req.originalUrl} → ${res.statusCode} (${duration}ms)`);
+      console.log(`[API] ${req.method} ${req.originalUrl} → ${res.statusCode} (${durationMs.toFixed(2)}ms)`);
     }
   });
+
+  const originalSend = res.send.bind(res);
+  res.send = function (body) {
+    const durationMs = Number(process.hrtime.bigint() - start) / 1e6;
+    if (!res.headersSent) {
+      res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
+    }
+    return originalSend(body);
+  };
+
   next();
 });
 
