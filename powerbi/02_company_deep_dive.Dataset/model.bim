@@ -974,6 +974,16 @@
             "name": "Dividend Growth Rate 5Y",
             "expression": "CALCULATE(AVERAGE(fact_analysis[dividend_growth_cagr_5y]), fact_analysis[period_label] = \"5Y\")",
             "formatString": "0.00%"
+          },
+          {
+            "name": "Economic Value Added (EVA)",
+            "expression": "([Total Net Profit] + SUM(fact_profit_loss[interest])) * (1 - 0.25) - ([Reserves] + SUM(fact_balance_sheet[borrowings])) * 0.10",
+            "formatString": "\u20b9#,0.00"
+          },
+          {
+            "name": "Weighted Average Cost of Capital (WACC)",
+            "expression": "VAR EquityWeight = DIVIDE([Reserves], [Reserves] + SUM(fact_balance_sheet[borrowings]), 0) VAR CostOfEquity = 0.12 VAR CostOfDebt = 0.08 * (1 - 0.25) RETURN (EquityWeight * CostOfEquity) + ((1 - EquityWeight) * CostOfDebt)",
+            "formatString": "0.00%"
           }
         ]
       }
