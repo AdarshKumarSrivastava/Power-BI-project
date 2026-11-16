@@ -356,6 +356,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Dividend & Returns",
     formula: "Dividend Growth Rate 5Y = \nCALCULATE(AVERAGE(fact_analysis[dividend_growth_cagr_5y]), fact_analysis[period_label] = \"5Y\")",
     description: "Compound annual growth rate of dividend distributions over a 5-year multi-cycle period."
+  },
+  {
+    name: "Economic Value Added (EVA)",
+    category: "Capital Efficiency",
+    formula: "Economic Value Added (EVA) = \nVAR NOPAT = ([Total Net Profit] + SUM(fact_profit_loss[interest])) * (1 - 0.25)\nVAR CapitalEmployed = [Reserves] + SUM(fact_balance_sheet[borrowings])\nRETURN NOPAT - (CapitalEmployed * 0.10)",
+    description: "Measure of economic profit generated in excess of the required return on invested capital."
+  },
+  {
+    name: "Weighted Average Cost of Capital (WACC)",
+    category: "Capital Efficiency",
+    formula: "WACC = \nVAR EquityWeight = DIVIDE([Reserves], [Reserves] + SUM(fact_balance_sheet[borrowings]), 0)\nVAR CostOfEquity = 0.12\nVAR CostOfDebt = 0.08 * (1 - 0.25)\nRETURN (EquityWeight * CostOfEquity) + ((1 - EquityWeight) * CostOfDebt)",
+    description: "Blended required rate of return across debt and equity capital structures."
   }
 ];
 
@@ -1083,6 +1095,53 @@ function App() {
                 ))}
               </div>
             </div>
+
+            {/* Macro Scenario Stress-Testing Matrix Card */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">Macroeconomic Scenario Stress-Testing & Shock Matrix</h3>
+              <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+                <table className="data-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <th style={{ padding: '10px 12px' }}>Sector</th>
+                      <th style={{ padding: '10px 12px' }}>Base Growth</th>
+                      <th style={{ padding: '10px 12px' }}>Bull (+Shock)</th>
+                      <th style={{ padding: '10px 12px' }}>Bear (-Shock)</th>
+                      <th style={{ padding: '10px 12px' }}>Margin Sensitivity</th>
+                      <th style={{ padding: '10px 12px' }}>Rate Hike Delta</th>
+                      <th style={{ padding: '10px 12px' }}>Resilience Rating</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { sector: "Information Tech", base: "15.4%", bull: "22.0%", bear: "6.5%", margin: "-150 bps", rate: "-40 bps", rating: "Strong", color: "#3b82f6" },
+                      { sector: "Banking & Finance", base: "18.2%", bull: "26.5%", bear: "8.0%", margin: "-80 bps", rate: "+120 bps", rating: "Very Strong", color: "#8b5cf6" },
+                      { sector: "Automobile", base: "19.5%", bull: "28.0%", bear: "-2.5%", margin: "-320 bps", rate: "-180 bps", rating: "Moderate", color: "#f59e0b" },
+                      { sector: "Pharma & Healthcare", base: "11.2%", bull: "16.5%", bear: "7.0%", margin: "-110 bps", rate: "-30 bps", rating: "Strong", color: "#10b981" },
+                      { sector: "Oil & Gas / Energy", base: "16.8%", bull: "25.0%", bear: "-5.0%", margin: "-450 bps", rate: "-90 bps", rating: "Cyclical / Volatile", color: "#ef4444" },
+                      { sector: "FMCG / Consumer", base: "9.8%", bull: "14.2%", bear: "5.5%", margin: "-90 bps", rate: "-20 bps", rating: "Defensive / High", color: "#ec4899" }
+                    ].map((row) => (
+                      <tr key={row.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600 }}>{row.sector}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--text-primary)' }}>{row.base}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--success)' }}>{row.bull}</td>
+                        <td style={{ padding: '10px 12px', color: row.bear.startsWith('-') ? 'var(--danger, #ef4444)' : 'var(--accent-blue)' }}>{row.bear}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-teal)' }}>{row.margin}</td>
+                        <td style={{ padding: '10px 12px', color: row.rate.startsWith('+') ? 'var(--success)' : 'var(--text-secondary)' }}>{row.rate}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{
+                            padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
+                            backgroundColor: `${row.color}20`, color: row.color, border: `1px solid ${row.color}40`
+                          }}>
+                            {row.rating}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1453,7 +1512,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 52 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 54 DAX Measures Ready</span>
               </div>
             </div>
 
