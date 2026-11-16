@@ -265,6 +265,15 @@ const fallbackDividendAnalytics = [
   { sector: "FMCG / Consumer", avgYieldPct: 2.6, payoutRatioPct: 74.5, coverageRatio: 1.34, cagr5y: 12.1, sustainabilityScore: 90, status: "Cash Cow" }
 ];
 
+const fallbackScenarioSimulations = [
+  { sector: "Information Tech", baseRevenueGrowth: 15.4, bullRevenueGrowth: 22.0, bearRevenueGrowth: 6.5, marginShockBps: -150, rateHikeImpactBps: -40, stressResilienceRating: "Strong" },
+  { sector: "Banking & Finance", baseRevenueGrowth: 18.2, bullRevenueGrowth: 26.5, bearRevenueGrowth: 8.0, marginShockBps: -80, rateHikeImpactBps: 120, stressResilienceRating: "Very Strong" },
+  { sector: "Automobile", baseRevenueGrowth: 19.5, bullRevenueGrowth: 28.0, bearRevenueGrowth: -2.5, marginShockBps: -320, rateHikeImpactBps: -180, stressResilienceRating: "Moderate" },
+  { sector: "Pharma & Healthcare", baseRevenueGrowth: 11.2, bullRevenueGrowth: 16.5, bearRevenueGrowth: 7.0, marginShockBps: -110, rateHikeImpactBps: -30, stressResilienceRating: "Strong" },
+  { sector: "Oil & Gas / Energy", baseRevenueGrowth: 16.8, bullRevenueGrowth: 25.0, bearRevenueGrowth: -5.0, marginShockBps: -450, rateHikeImpactBps: -90, stressResilienceRating: "Cyclical / Volatile" },
+  { sector: "FMCG / Consumer", baseRevenueGrowth: 9.8, bullRevenueGrowth: 14.2, bearRevenueGrowth: 5.5, marginShockBps: -90, rateHikeImpactBps: -20, stressResilienceRating: "Defensive / High" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -301,9 +310,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/dupont', method: 'GET', description: 'DuPont 3-stage ROE decomposition (Net Margin, Asset Turnover, Financial Leverage)' },
       { path: '/api/analytics/working-capital', method: 'GET', description: 'Working capital operating cycle metrics (CCC, DSO, DIO, DPO)' },
       { path: '/api/analytics/dividend-payout', method: 'GET', description: 'Dividend sustainability analytics, coverage ratios, and 5Y compounding growth' },
+      { path: '/api/analytics/scenario-simulation', method: 'GET', description: 'Macroeconomic multi-factor stress testing and scenario shock simulation' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, scenario, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -346,6 +356,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackWorkingCapital;
     } else if (dataset === 'dividend') {
       payload = fallbackDividendAnalytics;
+    } else if (dataset === 'scenario') {
+      payload = fallbackScenarioSimulations;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -887,6 +899,42 @@ app.get('/api/analytics/dividend-payout', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve dividend analytics', message: err.message });
+  }
+});
+
+// Macroeconomic Scenario Stress-Testing Endpoint
+app.get('/api/analytics/scenario-simulation', async (req, res) => {
+  try {
+    const { sector, rating, sortBy = 'baseRevenueGrowth', order = 'desc' } = req.query;
+    let results = [...fallbackScenarioSimulations];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(s => s.sector.toLowerCase().includes(secLower));
+    }
+
+    if (rating && rating !== 'All') {
+      const ratLower = String(rating).toLowerCase();
+      results = results.filter(s => s.stressResilienceRating.toLowerCase().includes(ratLower));
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      scenarios: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve scenario simulations', message: err.message });
   }
 });
 
