@@ -68,6 +68,7 @@ The system provides standard institutional financial measures:
 - **Earnings Quality & Cash Flow**: `Sloan Accrual Ratio`, `Operating Cash Flow to Net Income`
 - **Growth & Momentum**: `Revenue CAGR 3Y`, `EPS Growth Rate`, `Price Momentum 12M`, `Revenue Surprise Index`
 - **Risk & Volatility**: `Beta Coefficient`, `30D Rolling Volatility`
+- **ESG & Sustainability**: `Carbon Intensity per Revenue`, `Green Capex %`
 
 ---
 
@@ -91,9 +92,10 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/analytics/working-capital` | Working capital operating cycle metrics (CCC, DSO, DIO, DPO) by sector. Supports `?sector=` and `?cycle=Efficient\|Lean\|Extended`. |
 | `GET` | `/api/analytics/dividend-payout` | Dividend sustainability metrics, payout ratios, coverage, and 5Y compounding growth by sector. Supports `?sector=` and `?status=`. |
 | `GET` | `/api/analytics/scenario-simulation` | Macroeconomic stress testing and scenario shock simulation across base, bull, and bear cases. Supports `?sector=` and `?rating=`. |
+| `GET` | `/api/analytics/esg-sustainability` | Institutional ESG ratings (AAA-BB), carbon intensity, and green capex allocation by sector. Supports `?sector=` and `?rating=`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital\|dividend\|scenario` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital\|dividend\|scenario\|esg` and `?format=json\|csv`. |
 
 ---
 
