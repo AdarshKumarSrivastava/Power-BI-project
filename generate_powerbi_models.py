@@ -289,7 +289,9 @@ def generate_dashboards():
         {"name": "Dividend Payout %", "expression": "DIVIDE(SUM(fact_cash_flow[financing_activity_dividends]), SUM(fact_profit_loss[net_profit]), 0) * 100", "formatString": "0.00%"},
         {"name": "Dividend Growth Rate 5Y", "expression": "CALCULATE(AVERAGE(fact_analysis[dividend_growth_cagr_5y]), fact_analysis[period_label] = \"5Y\")", "formatString": "0.00%"},
         {"name": "Economic Value Added (EVA)", "expression": "([Total Net Profit] + SUM(fact_profit_loss[interest])) * (1 - 0.25) - ([Reserves] + SUM(fact_balance_sheet[borrowings])) * 0.10", "formatString": "₹#,0.00"},
-        {"name": "Weighted Average Cost of Capital (WACC)", "expression": "VAR EquityWeight = DIVIDE([Reserves], [Reserves] + SUM(fact_balance_sheet[borrowings]), 0) VAR CostOfEquity = 0.12 VAR CostOfDebt = 0.08 * (1 - 0.25) RETURN (EquityWeight * CostOfEquity) + ((1 - EquityWeight) * CostOfDebt)", "formatString": "0.00%"}
+        {"name": "Weighted Average Cost of Capital (WACC)", "expression": "VAR EquityWeight = DIVIDE([Reserves], [Reserves] + SUM(fact_balance_sheet[borrowings]), 0) VAR CostOfEquity = 0.12 VAR CostOfDebt = 0.08 * (1 - 0.25) RETURN (EquityWeight * CostOfEquity) + ((1 - EquityWeight) * CostOfDebt)", "formatString": "0.00%"},
+        {"name": "Carbon Intensity per Revenue", "expression": "DIVIDE(SUM(fact_financial_metrics[carbon_emissions_mt]), SUM(fact_profit_loss[sales]), 0) * 1000", "formatString": "0.00"},
+        {"name": "Green Capex %", "expression": "DIVIDE(SUM(fact_cash_flow[investing_green_capex]), SUM(fact_cash_flow[capital_expenditures]), 0) * 100", "formatString": "0.00%"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
