@@ -368,6 +368,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Capital Efficiency",
     formula: "WACC = \nVAR EquityWeight = DIVIDE([Reserves], [Reserves] + SUM(fact_balance_sheet[borrowings]), 0)\nVAR CostOfEquity = 0.12\nVAR CostOfDebt = 0.08 * (1 - 0.25)\nRETURN (EquityWeight * CostOfEquity) + ((1 - EquityWeight) * CostOfDebt)",
     description: "Blended required rate of return across debt and equity capital structures."
+  },
+  {
+    name: "Carbon Intensity per Revenue",
+    category: "Valuation",
+    formula: "Carbon Intensity per Revenue = \nDIVIDE(SUM(fact_financial_metrics[carbon_emissions_mt]), SUM(fact_profit_loss[sales]), 0) * 1000",
+    description: "Measures greenhouse gas emissions normalized per unit of revenue generated."
+  },
+  {
+    name: "Green Capex %",
+    category: "Capital Efficiency",
+    formula: "Green Capex % = \nDIVIDE(SUM(fact_cash_flow[investing_green_capex]), SUM(fact_cash_flow[capital_expenditures]), 0) * 100",
+    description: "Percentage of total capital expenditures allocated directly toward decarbonization and clean energy transition."
   }
 ];
 
@@ -1142,6 +1154,51 @@ function App() {
                 </table>
               </div>
             </div>
+
+            {/* ESG & Sustainability Leadership Matrix Card */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">ESG Decarbonization & Green Capex Leadership Matrix</h3>
+              <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+                <table className="data-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <th style={{ padding: '10px 12px' }}>Sector</th>
+                      <th style={{ padding: '10px 12px' }}>ESG Score</th>
+                      <th style={{ padding: '10px 12px' }}>Rating</th>
+                      <th style={{ padding: '10px 12px' }}>Carbon Intensity (tCO2e/Cr)</th>
+                      <th style={{ padding: '10px 12px' }}>Green Capex %</th>
+                      <th style={{ padding: '10px 12px' }}>Decarbonization Tier</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { sector: "Information Tech", score: 88, rating: "AAA", carbon: "12.4", capex: "18.5%", tier: "ESG Leader", color: "#3b82f6" },
+                      { sector: "Banking & Finance", score: 85, rating: "AA", carbon: "4.2", capex: "24.0%", tier: "Sustainable Finance", color: "#8b5cf6" },
+                      { sector: "Automobile", score: 75, rating: "A", carbon: "68.5", capex: "35.2%", tier: "EV Transition", color: "#f59e0b" },
+                      { sector: "Pharma & Healthcare", score: 82, rating: "AA", carbon: "28.1", capex: "14.8%", tier: "High Social Impact", color: "#10b981" },
+                      { sector: "Oil & Gas / Energy", score: 66, rating: "BBB", carbon: "185.0", capex: "28.6%", tier: "Decarbonizing", color: "#ef4444" },
+                      { sector: "FMCG / Consumer", score: 83, rating: "AA", carbon: "34.2", capex: "16.4%", tier: "Circular Economy", color: "#ec4899" }
+                    ].map((row) => (
+                      <tr key={row.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600 }}>{row.sector}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-teal)' }}>{row.score}/100</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--success)' }}>{row.rating}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-blue)' }}>{row.carbon}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-purple)' }}>{row.capex}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{
+                            padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
+                            backgroundColor: `${row.color}20`, color: row.color, border: `1px solid ${row.color}40`
+                          }}>
+                            {row.tier}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1512,7 +1569,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 54 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 56 DAX Measures Ready</span>
               </div>
             </div>
 
