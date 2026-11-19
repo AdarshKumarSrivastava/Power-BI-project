@@ -291,7 +291,9 @@ def generate_dashboards():
         {"name": "Economic Value Added (EVA)", "expression": "([Total Net Profit] + SUM(fact_profit_loss[interest])) * (1 - 0.25) - ([Reserves] + SUM(fact_balance_sheet[borrowings])) * 0.10", "formatString": "₹#,0.00"},
         {"name": "Weighted Average Cost of Capital (WACC)", "expression": "VAR EquityWeight = DIVIDE([Reserves], [Reserves] + SUM(fact_balance_sheet[borrowings]), 0) VAR CostOfEquity = 0.12 VAR CostOfDebt = 0.08 * (1 - 0.25) RETURN (EquityWeight * CostOfEquity) + ((1 - EquityWeight) * CostOfDebt)", "formatString": "0.00%"},
         {"name": "Carbon Intensity per Revenue", "expression": "DIVIDE(SUM(fact_financial_metrics[carbon_emissions_mt]), SUM(fact_profit_loss[sales]), 0) * 1000", "formatString": "0.00"},
-        {"name": "Green Capex %", "expression": "DIVIDE(SUM(fact_cash_flow[investing_green_capex]), SUM(fact_cash_flow[capital_expenditures]), 0) * 100", "formatString": "0.00%"}
+        {"name": "Green Capex %", "expression": "DIVIDE(SUM(fact_cash_flow[investing_green_capex]), SUM(fact_cash_flow[capital_expenditures]), 0) * 100", "formatString": "0.00%"},
+        {"name": "Probability of Default 1Y", "expression": "DIVIDE(SUM(fact_balance_sheet[borrowings]) - [Reserves], SUM(fact_balance_sheet[total_assets]), 0) * 0.05", "formatString": "0.00%"},
+        {"name": "Debt Capacity Buffer", "expression": "DIVIDE([Total Net Profit] * 4 - SUM(fact_balance_sheet[borrowings]), [Total Net Profit] * 4, 0) * 100", "formatString": "0.00%"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
