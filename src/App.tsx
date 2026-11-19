@@ -380,6 +380,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Capital Efficiency",
     formula: "Green Capex % = \nDIVIDE(SUM(fact_cash_flow[investing_green_capex]), SUM(fact_cash_flow[capital_expenditures]), 0) * 100",
     description: "Percentage of total capital expenditures allocated directly toward decarbonization and clean energy transition."
+  },
+  {
+    name: "Probability of Default 1Y",
+    category: "Debt & Leverage",
+    formula: "Probability of Default 1Y = \nDIVIDE(SUM(fact_balance_sheet[borrowings]) - [Reserves], SUM(fact_balance_sheet[total_assets]), 0) * 0.05",
+    description: "Statistical 1-year forward probability of default estimated from balance sheet leverage and liquidity buffer."
+  },
+  {
+    name: "Debt Capacity Buffer",
+    category: "Debt & Leverage",
+    formula: "Debt Capacity Buffer = \nDIVIDE([Total Net Profit] * 4 - SUM(fact_balance_sheet[borrowings]), [Total Net Profit] * 4, 0) * 100",
+    description: "Remaining borrowing headroom before debt exceeds 4x sustainable annual operating earnings."
   }
 ];
 
@@ -1199,6 +1211,53 @@ function App() {
                 </table>
               </div>
             </div>
+
+            {/* Credit Risk & Default Rating Matrix Card */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">Credit Risk & Default Probability Matrix</h3>
+              <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+                <table className="data-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <th style={{ padding: '10px 12px' }}>Sector</th>
+                      <th style={{ padding: '10px 12px' }}>Agency Rating</th>
+                      <th style={{ padding: '10px 12px' }}>PD (1-Year)</th>
+                      <th style={{ padding: '10px 12px' }}>PD (5-Year)</th>
+                      <th style={{ padding: '10px 12px' }}>Recovery Rate</th>
+                      <th style={{ padding: '10px 12px' }}>Debt Capacity</th>
+                      <th style={{ padding: '10px 12px' }}>Outlook</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { sector: "Information Tech", rating: "AAA", pd1: "0.02%", pd5: "0.15%", recovery: "82.5%", buffer: "High", outlook: "Stable", color: "#10b981" },
+                      { sector: "Banking & Finance", rating: "AAA / AA+", pd1: "0.05%", pd5: "0.38%", recovery: "75.0%", buffer: "Strong", outlook: "Positive", color: "#3b82f6" },
+                      { sector: "Automobile", rating: "AA- / A+", pd1: "0.18%", pd5: "1.12%", recovery: "62.0%", buffer: "Moderate", outlook: "Stable", color: "#f59e0b" },
+                      { sector: "Pharma & Healthcare", rating: "AA+", pd1: "0.04%", pd5: "0.28%", recovery: "78.5%", buffer: "High", outlook: "Stable", color: "#8b5cf6" },
+                      { sector: "Oil & Gas / Energy", rating: "AAA / AA", pd1: "0.12%", pd5: "0.85%", recovery: "68.0%", buffer: "Adequate", outlook: "Neutral", color: "#06b6d4" },
+                      { sector: "FMCG / Consumer", rating: "AAA", pd1: "0.01%", pd5: "0.10%", recovery: "88.0%", buffer: "Very High", outlook: "Positive", color: "#ec4899" }
+                    ].map((row) => (
+                      <tr key={row.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600 }}>{row.sector}</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--accent-teal)' }}>{row.rating}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-blue)' }}>{row.pd1}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>{row.pd5}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--success)' }}>{row.recovery}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-purple)' }}>{row.buffer}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{
+                            padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
+                            backgroundColor: `${row.color}20`, color: row.color, border: `1px solid ${row.color}40`
+                          }}>
+                            {row.outlook}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1569,7 +1628,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 56 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 58 DAX Measures Ready</span>
               </div>
             </div>
 

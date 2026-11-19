@@ -67,7 +67,7 @@ The system provides standard institutional financial measures:
 - **Composite Scoring**: `Piotroski F-Score (0-9)`, `Altman Z-Score`, `DuPont 3-Stage ROE Decomposition`
 - **Earnings Quality & Cash Flow**: `Sloan Accrual Ratio`, `Operating Cash Flow to Net Income`
 - **Growth & Momentum**: `Revenue CAGR 3Y`, `EPS Growth Rate`, `Price Momentum 12M`, `Revenue Surprise Index`
-- **Risk & Volatility**: `Beta Coefficient`, `30D Rolling Volatility`
+- **Risk & Volatility**: `Beta Coefficient`, `30D Rolling Volatility`, `Probability of Default 1Y`, `Debt Capacity Buffer`
 - **ESG & Sustainability**: `Carbon Intensity per Revenue`, `Green Capex %`
 
 ---
@@ -93,9 +93,10 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/analytics/dividend-payout` | Dividend sustainability metrics, payout ratios, coverage, and 5Y compounding growth by sector. Supports `?sector=` and `?status=`. |
 | `GET` | `/api/analytics/scenario-simulation` | Macroeconomic stress testing and scenario shock simulation across base, bull, and bear cases. Supports `?sector=` and `?rating=`. |
 | `GET` | `/api/analytics/esg-sustainability` | Institutional ESG ratings (AAA-BB), carbon intensity, and green capex allocation by sector. Supports `?sector=` and `?rating=`. |
+| `GET` | `/api/analytics/credit-ratings` | Institutional credit risk ratings (AAA-A), default probability (PD 1Y/5Y), and recovery rates by sector. Supports `?sector=`, `?rating=`, and `?outlook=`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital\|dividend\|scenario\|esg` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital\|dividend\|scenario\|esg\|credit` and `?format=json\|csv`. |
 
 ---
 
