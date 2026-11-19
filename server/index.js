@@ -293,6 +293,15 @@ const fallbackEsgAnalytics = [
   { sector: "FMCG / Consumer", environmentalScore: 76, socialScore: 84, governanceScore: 88, compositeEsgScore: 83, esgRating: "AA", carbonIntensity: 34.2, greenCapexPct: 16.4, status: "Circular Economy" }
 ];
 
+const fallbackCreditRatings = [
+  { sector: "Information Tech", dominantRating: "AAA", probabilityOfDefault1Y: 0.02, probabilityOfDefault5Y: 0.15, recoveryRatePct: 82.5, debtCapacityBuffer: "High", creditOutlook: "Stable" },
+  { sector: "Banking & Finance", dominantRating: "AAA / AA+", probabilityOfDefault1Y: 0.05, probabilityOfDefault5Y: 0.38, recoveryRatePct: 75.0, debtCapacityBuffer: "Strong", creditOutlook: "Positive" },
+  { sector: "Automobile", dominantRating: "AA- / A+", probabilityOfDefault1Y: 0.18, probabilityOfDefault5Y: 1.12, recoveryRatePct: 62.0, debtCapacityBuffer: "Moderate", creditOutlook: "Stable" },
+  { sector: "Pharma & Healthcare", dominantRating: "AA+", probabilityOfDefault1Y: 0.04, probabilityOfDefault5Y: 0.28, recoveryRatePct: 78.5, debtCapacityBuffer: "High", creditOutlook: "Stable" },
+  { sector: "Oil & Gas / Energy", dominantRating: "AAA / AA", probabilityOfDefault1Y: 0.12, probabilityOfDefault5Y: 0.85, recoveryRatePct: 68.0, debtCapacityBuffer: "Adequate", creditOutlook: "Neutral" },
+  { sector: "FMCG / Consumer", dominantRating: "AAA", probabilityOfDefault1Y: 0.01, probabilityOfDefault5Y: 0.10, recoveryRatePct: 88.0, debtCapacityBuffer: "Very High", creditOutlook: "Positive" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -331,9 +340,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/dividend-payout', method: 'GET', description: 'Dividend sustainability analytics, coverage ratios, and 5Y compounding growth' },
       { path: '/api/analytics/scenario-simulation', method: 'GET', description: 'Macroeconomic multi-factor stress testing and scenario shock simulation' },
       { path: '/api/analytics/esg-sustainability', method: 'GET', description: 'Institutional Environmental, Social, and Governance (ESG) ratings and decarbonization metrics' },
+      { path: '/api/analytics/credit-ratings', method: 'GET', description: 'Credit risk default probability (PD 1Y/5Y), recovery rate, and agency ratings' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, scenario, esg, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, scenario, esg, credit, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -380,6 +390,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackScenarioSimulations;
     } else if (dataset === 'esg') {
       payload = fallbackEsgAnalytics;
+    } else if (dataset === 'credit') {
+      payload = fallbackCreditRatings;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -993,6 +1005,47 @@ app.get('/api/analytics/esg-sustainability', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve ESG analytics', message: err.message });
+  }
+});
+
+// Institutional Credit Risk & Default Rating Analytics Endpoint
+app.get('/api/analytics/credit-ratings', async (req, res) => {
+  try {
+    const { sector, rating, outlook, sortBy = 'probabilityOfDefault1Y', order = 'asc' } = req.query;
+    let results = [...fallbackCreditRatings];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(c => c.sector.toLowerCase().includes(secLower));
+    }
+
+    if (rating && rating !== 'All') {
+      const ratLower = String(rating).toLowerCase();
+      results = results.filter(c => c.dominantRating.toLowerCase().includes(ratLower));
+    }
+
+    if (outlook && outlook !== 'All') {
+      const outLower = String(outlook).toLowerCase();
+      results = results.filter(c => c.creditOutlook.toLowerCase() === outLower);
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      creditRatings: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve credit rating analytics', message: err.message });
   }
 });
 
