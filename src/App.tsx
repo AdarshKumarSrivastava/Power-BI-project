@@ -392,6 +392,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Debt & Leverage",
     formula: "Debt Capacity Buffer = \nDIVIDE([Total Net Profit] * 4 - SUM(fact_balance_sheet[borrowings]), [Total Net Profit] * 4, 0) * 100",
     description: "Remaining borrowing headroom before debt exceeds 4x sustainable annual operating earnings."
+  },
+  {
+    name: "Liquidity Coverage Ratio %",
+    category: "Debt & Leverage",
+    formula: "Liquidity Coverage Ratio % = \nDIVIDE(SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_balance_sheet[borrowings]) * 0.25, 0) * 100",
+    description: "Ratio of high-quality liquid cash assets against estimated short-term 30-day liquidity requirements."
+  },
+  {
+    name: "Cash Runway (Months)",
+    category: "Cash Flow",
+    formula: "Cash Runway (Months) = \nDIVIDE(SUM(fact_balance_sheet[cash_and_bank]), DIVIDE(SUM(fact_profit_loss[sales]) - [Total Net Profit], 12), 0)",
+    description: "Estimated operational runway in months supported by current cash reserves without external financing."
   }
 ];
 
@@ -1258,6 +1270,53 @@ function App() {
                 </table>
               </div>
             </div>
+
+            {/* Liquidity Coverage & Cash Runway Matrix Card */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">Institutional Liquidity & Treasury Coverage Matrix</h3>
+              <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+                <table className="data-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <th style={{ padding: '10px 12px' }}>Sector</th>
+                      <th style={{ padding: '10px 12px' }}>Cash & Eq (₹ Cr)</th>
+                      <th style={{ padding: '10px 12px' }}>LCR %</th>
+                      <th style={{ padding: '10px 12px' }}>Cash Runway</th>
+                      <th style={{ padding: '10px 12px' }}>NWC / Sales %</th>
+                      <th style={{ padding: '10px 12px' }}>Treasury Yield</th>
+                      <th style={{ padding: '10px 12px' }}>Liquidity Tier</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { sector: "Information Tech", cash: "₹48,500", lcr: "245.0%", runway: "42.5 Mos", nwc: "18.2%", yield: "6.85%", tier: "Prime Liquidity", color: "#10b981" },
+                      { sector: "Banking & Finance", cash: "₹92,400", lcr: "168.0%", runway: "36.0 Mos", nwc: "24.5%", yield: "7.15%", tier: "Regulatory Surplus", color: "#3b82f6" },
+                      { sector: "Automobile", cash: "₹18,200", lcr: "142.5%", runway: "19.8 Mos", nwc: "8.6%", yield: "6.50%", tier: "Adequate Buffer", color: "#f59e0b" },
+                      { sector: "Pharma & Healthcare", cash: "₹24,600", lcr: "195.0%", runway: "31.4 Mos", nwc: "15.8%", yield: "6.90%", tier: "High Buffer", color: "#8b5cf6" },
+                      { sector: "Oil & Gas / Energy", cash: "₹31,500", lcr: "135.0%", runway: "16.5 Mos", nwc: "6.2%", yield: "6.40%", tier: "Moderate Buffer", color: "#06b6d4" },
+                      { sector: "FMCG / Consumer", cash: "₹19,800", lcr: "220.0%", runway: "46.2 Mos", nwc: "12.4%", yield: "7.05%", tier: "Prime Liquidity", color: "#ec4899" }
+                    ].map((row) => (
+                      <tr key={row.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600 }}>{row.sector}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-teal)' }}>{row.cash}</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--success)' }}>{row.lcr}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-blue)' }}>{row.runway}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>{row.nwc}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-purple)' }}>{row.yield}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{
+                            padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
+                            backgroundColor: `${row.color}20`, color: row.color, border: `1px solid ${row.color}40`
+                          }}>
+                            {row.tier}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1628,7 +1687,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 58 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 60 DAX Measures Ready</span>
               </div>
             </div>
 
