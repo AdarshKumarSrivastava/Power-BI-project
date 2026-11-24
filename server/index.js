@@ -302,6 +302,15 @@ const fallbackCreditRatings = [
   { sector: "FMCG / Consumer", dominantRating: "AAA", probabilityOfDefault1Y: 0.01, probabilityOfDefault5Y: 0.10, recoveryRatePct: 88.0, debtCapacityBuffer: "Very High", creditOutlook: "Positive" }
 ];
 
+const fallbackLiquidityTreasury = [
+  { sector: "Information Tech", cashAndEquivalentsCrores: 48500, lcrPct: 245.0, cashRunwayMonths: 42.5, netWorkingCapitalToSalesPct: 18.2, liquidYieldPct: 6.85, liquidityTier: "Prime Liquidity" },
+  { sector: "Banking & Finance", cashAndEquivalentsCrores: 92400, lcrPct: 168.0, cashRunwayMonths: 36.0, netWorkingCapitalToSalesPct: 24.5, liquidYieldPct: 7.15, liquidityTier: "Regulatory Surplus" },
+  { sector: "Automobile", cashAndEquivalentsCrores: 18200, lcrPct: 142.5, cashRunwayMonths: 19.8, netWorkingCapitalToSalesPct: 8.6, liquidYieldPct: 6.50, liquidityTier: "Adequate Buffer" },
+  { sector: "Pharma & Healthcare", cashAndEquivalentsCrores: 24600, lcrPct: 195.0, cashRunwayMonths: 31.4, netWorkingCapitalToSalesPct: 15.8, liquidYieldPct: 6.90, liquidityTier: "High Buffer" },
+  { sector: "Oil & Gas / Energy", cashAndEquivalentsCrores: 31500, lcrPct: 135.0, cashRunwayMonths: 16.5, netWorkingCapitalToSalesPct: 6.2, liquidYieldPct: 6.40, liquidityTier: "Moderate Buffer" },
+  { sector: "FMCG / Consumer", cashAndEquivalentsCrores: 19800, lcrPct: 220.0, cashRunwayMonths: 46.2, netWorkingCapitalToSalesPct: 12.4, liquidYieldPct: 7.05, liquidityTier: "Prime Liquidity" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -341,9 +350,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/scenario-simulation', method: 'GET', description: 'Macroeconomic multi-factor stress testing and scenario shock simulation' },
       { path: '/api/analytics/esg-sustainability', method: 'GET', description: 'Institutional Environmental, Social, and Governance (ESG) ratings and decarbonization metrics' },
       { path: '/api/analytics/credit-ratings', method: 'GET', description: 'Credit risk default probability (PD 1Y/5Y), recovery rate, and agency ratings' },
+      { path: '/api/analytics/liquidity-treasury', method: 'GET', description: 'Institutional Liquidity Coverage Ratio (LCR), cash runway months, and treasury deployment metrics' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, scenario, esg, credit, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, scenario, esg, credit, liquidity, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -392,6 +402,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackEsgAnalytics;
     } else if (dataset === 'credit') {
       payload = fallbackCreditRatings;
+    } else if (dataset === 'liquidity') {
+      payload = fallbackLiquidityTreasury;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -1046,6 +1058,42 @@ app.get('/api/analytics/credit-ratings', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve credit rating analytics', message: err.message });
+  }
+});
+
+// Institutional Liquidity & Treasury Coverage Analytics Endpoint
+app.get('/api/analytics/liquidity-treasury', async (req, res) => {
+  try {
+    const { sector, tier, sortBy = 'lcrPct', order = 'desc' } = req.query;
+    let results = [...fallbackLiquidityTreasury];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(c => c.sector.toLowerCase().includes(secLower));
+    }
+
+    if (tier && tier !== 'All') {
+      const tierLower = String(tier).toLowerCase();
+      results = results.filter(c => c.liquidityTier.toLowerCase().includes(tierLower));
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      liquidityTreasury: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve liquidity and treasury analytics', message: err.message });
   }
 });
 
