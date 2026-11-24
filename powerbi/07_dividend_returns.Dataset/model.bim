@@ -1004,6 +1004,16 @@
             "name": "Debt Capacity Buffer",
             "expression": "DIVIDE([Total Net Profit] * 4 - SUM(fact_balance_sheet[borrowings]), [Total Net Profit] * 4, 0) * 100",
             "formatString": "0.00%"
+          },
+          {
+            "name": "Liquidity Coverage Ratio %",
+            "expression": "DIVIDE(SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_balance_sheet[borrowings]) * 0.25, 0) * 100",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Cash Runway (Months)",
+            "expression": "DIVIDE(SUM(fact_balance_sheet[cash_and_bank]), DIVIDE(SUM(fact_profit_loss[sales]) - [Total Net Profit], 12), 0)",
+            "formatString": "#,0.0"
           }
         ]
       }

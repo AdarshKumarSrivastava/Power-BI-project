@@ -293,7 +293,9 @@ def generate_dashboards():
         {"name": "Carbon Intensity per Revenue", "expression": "DIVIDE(SUM(fact_financial_metrics[carbon_emissions_mt]), SUM(fact_profit_loss[sales]), 0) * 1000", "formatString": "0.00"},
         {"name": "Green Capex %", "expression": "DIVIDE(SUM(fact_cash_flow[investing_green_capex]), SUM(fact_cash_flow[capital_expenditures]), 0) * 100", "formatString": "0.00%"},
         {"name": "Probability of Default 1Y", "expression": "DIVIDE(SUM(fact_balance_sheet[borrowings]) - [Reserves], SUM(fact_balance_sheet[total_assets]), 0) * 0.05", "formatString": "0.00%"},
-        {"name": "Debt Capacity Buffer", "expression": "DIVIDE([Total Net Profit] * 4 - SUM(fact_balance_sheet[borrowings]), [Total Net Profit] * 4, 0) * 100", "formatString": "0.00%"}
+        {"name": "Debt Capacity Buffer", "expression": "DIVIDE([Total Net Profit] * 4 - SUM(fact_balance_sheet[borrowings]), [Total Net Profit] * 4, 0) * 100", "formatString": "0.00%"},
+        {"name": "Liquidity Coverage Ratio %", "expression": "DIVIDE(SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_balance_sheet[borrowings]) * 0.25, 0) * 100", "formatString": "0.00%"},
+        {"name": "Cash Runway (Months)", "expression": "DIVIDE(SUM(fact_balance_sheet[cash_and_bank]), DIVIDE(SUM(fact_profit_loss[sales]) - [Total Net Profit], 12), 0)", "formatString": "#,0.0"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
