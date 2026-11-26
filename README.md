@@ -60,7 +60,7 @@ python generate_powerbi_models.py
 ## 📊 Comprehensive DAX Repository
 
 The system provides standard institutional financial measures:
-- **Profitability & Capital Efficiency**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`, `CFROIC %`, `Asset Turnover`, `Financial Leverage Multiplier`, `Economic Value Added (EVA)`, `Weighted Average Cost of Capital (WACC)`
+- **Profitability & Capital Efficiency**: `EBITDA Margin`, `Operating Margin %`, `Net Profit Margin %`, `Return on Equity (ROE)`, `Return on Capital Employed (ROCE)`, `CFROIC %`, `Asset Turnover`, `Financial Leverage Multiplier`, `Economic Value Added (EVA)`, `Weighted Average Cost of Capital (WACC)`, `Economic Profit Spread %`, `Reinvestment Rate %`
 - **Valuation**: `P/E Ratio`, `Price to Book (P/B) Ratio`, `EV to EBITDA`, `PEG Ratio`, `Free Cash Flow Yield %`
 - **Solvency, Liquidity & Cash Flow**: `Debt to Equity Ratio`, `Current Ratio`, `Interest Coverage Ratio`, `Net Debt to Equity`, `Net Debt to EBITDA`, `Operating Cash Flow Margin %`, `Cash Flow to Debt Ratio`, `Free Cash Flow`, `Cash Conversion Cycle (Days)`, `Liquidity Coverage Ratio %`, `Cash Runway (Months)`
 - **Shareholder Return**: `Dividend Yield %`, `Dividend Payout Ratio`, `Dividend Payout %`, `Dividend Coverage Ratio`, `Earnings Per Share (EPS)`, `Consistent Dividend Payers Flag`, `Dividend Growth Rate 5Y`
@@ -95,9 +95,10 @@ The Node.js Express backend serves structured endpoints for frontend and externa
 | `GET` | `/api/analytics/esg-sustainability` | Institutional ESG ratings (AAA-BB), carbon intensity, and green capex allocation by sector. Supports `?sector=` and `?rating=`. |
 | `GET` | `/api/analytics/credit-ratings` | Institutional credit risk ratings (AAA-A), default probability (PD 1Y/5Y), and recovery rates by sector. Supports `?sector=`, `?rating=`, and `?outlook=`. |
 | `GET` | `/api/analytics/liquidity-treasury` | Institutional Liquidity Coverage Ratio (LCR), cash runway months, and treasury deployment metrics by sector. Supports `?sector=`, `?tier=`, and `?sortBy=`. |
+| `GET` | `/api/analytics/capital-allocation` | Institutional ROIC vs WACC economic profit spread, reinvestment rates, and organic growth by sector. Supports `?sector=`, `?tier=`, and `?sortBy=`. |
 | `GET` | `/api/health-scorecard` | Fundamental health scorecard with Altman Z and Piotroski F scores. Supports `?risk=` and `?search=`. |
 | `GET` | `/api/dax-measures` | Full DAX measure catalog with formula definitions. Supports `?category=` and `?search=`. |
-| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital\|dividend\|scenario\|esg\|credit\|liquidity` and `?format=json\|csv`. |
+| `GET` | `/api/export` | Universal dataset exporter. Supports `?dataset=dax\|sectors\|health\|companies\|kpis\|growth\|overview\|valuation\|peers\|risk\|dupont\|working-capital\|dividend\|scenario\|esg\|credit\|liquidity\|capital` and `?format=json\|csv`. |
 
 ---
 
