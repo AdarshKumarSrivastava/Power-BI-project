@@ -404,6 +404,18 @@ const DAX_MEASURES: DaxMeasure[] = [
     category: "Cash Flow",
     formula: "Cash Runway (Months) = \nDIVIDE(SUM(fact_balance_sheet[cash_and_bank]), DIVIDE(SUM(fact_profit_loss[sales]) - [Total Net Profit], 12), 0)",
     description: "Estimated operational runway in months supported by current cash reserves without external financing."
+  },
+  {
+    name: "Economic Profit Spread %",
+    category: "Capital Efficiency",
+    formula: "Economic Profit Spread % = \nDIVIDE([Total Net Profit] + SUM(fact_profit_loss[interest]), [Reserves] + SUM(fact_balance_sheet[borrowings]), 0) * 100 - [Weighted Average Cost of Capital (WACC)] * 100",
+    description: "Net economic value creation percentage indicating return earned on capital employed above WACC hurdle rate."
+  },
+  {
+    name: "Reinvestment Rate %",
+    category: "Capital Efficiency",
+    formula: "Reinvestment Rate % = \nDIVIDE(SUM(fact_cash_flow[capital_expenditures]), [Total Net Profit], 0) * 100",
+    description: "Proportion of net profits directed back into capital assets and expansion projects."
   }
 ];
 
@@ -1317,6 +1329,53 @@ function App() {
                 </table>
               </div>
             </div>
+
+            {/* Capital Allocation & Economic Spread Matrix Card */}
+            <div className="glass-panel chart-card" style={{ marginTop: '0' }}>
+              <h3 className="chart-title">Capital Allocation & Economic Profit Spread Matrix</h3>
+              <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+                <table className="data-table" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <th style={{ padding: '10px 12px' }}>Sector</th>
+                      <th style={{ padding: '10px 12px' }}>ROIC %</th>
+                      <th style={{ padding: '10px 12px' }}>WACC %</th>
+                      <th style={{ padding: '10px 12px' }}>Economic Spread</th>
+                      <th style={{ padding: '10px 12px' }}>Reinvestment Rate</th>
+                      <th style={{ padding: '10px 12px' }}>Organic Growth Cap</th>
+                      <th style={{ padding: '10px 12px' }}>Allocation Tier</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { sector: "Information Tech", roic: "28.5%", wacc: "10.2%", spread: "+18.3%", reinvest: "32.5%", growth: "9.26%", tier: "Exceptional Value Creator", color: "#10b981" },
+                      { sector: "Banking & Finance", roic: "16.8%", wacc: "8.5%", spread: "+8.3%", reinvest: "45.0%", growth: "7.56%", tier: "Disciplined Compounder", color: "#3b82f6" },
+                      { sector: "Automobile", roic: "14.2%", wacc: "11.0%", spread: "+3.2%", reinvest: "62.0%", growth: "8.80%", tier: "Moderate Reinvestor", color: "#f59e0b" },
+                      { sector: "Pharma & Healthcare", roic: "22.4%", wacc: "9.8%", spread: "+12.6%", reinvest: "38.0%", growth: "8.51%", tier: "Exceptional Value Creator", color: "#8b5cf6" },
+                      { sector: "Oil & Gas / Energy", roic: "11.5%", wacc: "10.5%", spread: "+1.0%", reinvest: "54.0%", growth: "6.21%", tier: "Capital Intensive", color: "#06b6d4" },
+                      { sector: "FMCG / Consumer", roic: "26.0%", wacc: "9.5%", spread: "+16.5%", reinvest: "28.0%", growth: "7.28%", tier: "Exceptional Value Creator", color: "#ec4899" }
+                    ].map((row) => (
+                      <tr key={row.sector} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 600 }}>{row.sector}</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--accent-teal)' }}>{row.roic}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--text-secondary)' }}>{row.wacc}</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--success)' }}>{row.spread}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-blue)' }}>{row.reinvest}</td>
+                        <td style={{ padding: '10px 12px', color: 'var(--accent-purple)' }}>{row.growth}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{
+                            padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
+                            backgroundColor: `${row.color}20`, color: row.color, border: `1px solid ${row.color}40`
+                          }}>
+                            {row.tier}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1687,7 +1746,7 @@ function App() {
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <span className="badge badge-success"><CheckCircle2 size={14} /> Schema Verified</span>
                 <span className="badge badge-info"><Layers size={14} /> 6 Tables Active</span>
-                <span className="badge badge-info"><ShieldCheck size={14} /> 60 DAX Measures Ready</span>
+                <span className="badge badge-info"><ShieldCheck size={14} /> 62 DAX Measures Ready</span>
               </div>
             </div>
 
