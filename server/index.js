@@ -79,11 +79,14 @@ app.use('/api', (req, res, next) => {
   }
 
   res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
+  res.setHeader('Vary', 'Accept-Encoding, Origin');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
 
   const originalJson = res.json.bind(res);
   res.json = (body) => {
     try {
       const bodyStr = JSON.stringify(body);
+      res.setHeader('X-Payload-Size-Bytes', Buffer.byteLength(bodyStr, 'utf8'));
       const etag = `"${crypto.createHash('md5').update(bodyStr).digest('hex')}"`;
       res.setHeader('ETag', etag);
 
