@@ -1014,6 +1014,16 @@
             "name": "Cash Runway (Months)",
             "expression": "DIVIDE(SUM(fact_balance_sheet[cash_and_bank]), DIVIDE(SUM(fact_profit_loss[sales]) - [Total Net Profit], 12), 0)",
             "formatString": "#,0.0"
+          },
+          {
+            "name": "Economic Profit Spread %",
+            "expression": "DIVIDE([Total Net Profit] + SUM(fact_profit_loss[interest]), [Reserves] + SUM(fact_balance_sheet[borrowings]), 0) * 100 - [Weighted Average Cost of Capital (WACC)] * 100",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Reinvestment Rate %",
+            "expression": "DIVIDE(SUM(fact_cash_flow[capital_expenditures]), [Total Net Profit], 0) * 100",
+            "formatString": "0.00%"
           }
         ]
       }

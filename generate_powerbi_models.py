@@ -295,7 +295,9 @@ def generate_dashboards():
         {"name": "Probability of Default 1Y", "expression": "DIVIDE(SUM(fact_balance_sheet[borrowings]) - [Reserves], SUM(fact_balance_sheet[total_assets]), 0) * 0.05", "formatString": "0.00%"},
         {"name": "Debt Capacity Buffer", "expression": "DIVIDE([Total Net Profit] * 4 - SUM(fact_balance_sheet[borrowings]), [Total Net Profit] * 4, 0) * 100", "formatString": "0.00%"},
         {"name": "Liquidity Coverage Ratio %", "expression": "DIVIDE(SUM(fact_balance_sheet[cash_and_bank]), SUM(fact_balance_sheet[borrowings]) * 0.25, 0) * 100", "formatString": "0.00%"},
-        {"name": "Cash Runway (Months)", "expression": "DIVIDE(SUM(fact_balance_sheet[cash_and_bank]), DIVIDE(SUM(fact_profit_loss[sales]) - [Total Net Profit], 12), 0)", "formatString": "#,0.0"}
+        {"name": "Cash Runway (Months)", "expression": "DIVIDE(SUM(fact_balance_sheet[cash_and_bank]), DIVIDE(SUM(fact_profit_loss[sales]) - [Total Net Profit], 12), 0)", "formatString": "#,0.0"},
+        {"name": "Economic Profit Spread %", "expression": "DIVIDE([Total Net Profit] + SUM(fact_profit_loss[interest]), [Reserves] + SUM(fact_balance_sheet[borrowings]), 0) * 100 - [Weighted Average Cost of Capital (WACC)] * 100", "formatString": "0.00%"},
+        {"name": "Reinvestment Rate %", "expression": "DIVIDE(SUM(fact_cash_flow[capital_expenditures]), [Total Net Profit], 0) * 100", "formatString": "0.00%"}
     ]
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
