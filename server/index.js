@@ -311,6 +311,15 @@ const fallbackLiquidityTreasury = [
   { sector: "FMCG / Consumer", cashAndEquivalentsCrores: 19800, lcrPct: 220.0, cashRunwayMonths: 46.2, netWorkingCapitalToSalesPct: 12.4, liquidYieldPct: 7.05, liquidityTier: "Prime Liquidity" }
 ];
 
+const fallbackCapitalAllocation = [
+  { sector: "Information Tech", roicPct: 28.5, waccPct: 10.2, economicSpreadPct: 18.3, reinvestmentRatePct: 32.5, organicGrowthCapPct: 9.26, allocationTier: "Exceptional Value Creator" },
+  { sector: "Banking & Finance", roicPct: 16.8, waccPct: 8.5, economicSpreadPct: 8.3, reinvestmentRatePct: 45.0, organicGrowthCapPct: 7.56, allocationTier: "Disciplined Compounder" },
+  { sector: "Automobile", roicPct: 14.2, waccPct: 11.0, economicSpreadPct: 3.2, reinvestmentRatePct: 62.0, organicGrowthCapPct: 8.80, allocationTier: "Moderate Reinvestor" },
+  { sector: "Pharma & Healthcare", roicPct: 22.4, waccPct: 9.8, economicSpreadPct: 12.6, reinvestmentRatePct: 38.0, organicGrowthCapPct: 8.51, allocationTier: "Exceptional Value Creator" },
+  { sector: "Oil & Gas / Energy", roicPct: 11.5, waccPct: 10.5, economicSpreadPct: 1.0, reinvestmentRatePct: 54.0, organicGrowthCapPct: 6.21, allocationTier: "Capital Intensive" },
+  { sector: "FMCG / Consumer", roicPct: 26.0, waccPct: 9.5, economicSpreadPct: 16.5, reinvestmentRatePct: 28.0, organicGrowthCapPct: 7.28, allocationTier: "Exceptional Value Creator" }
+];
+
 // Health & Diagnostic Check
 app.get('/api/health', (req, res) => {
   const mem = process.memoryUsage();
@@ -351,9 +360,10 @@ app.get('/api/meta', (req, res) => {
       { path: '/api/analytics/esg-sustainability', method: 'GET', description: 'Institutional Environmental, Social, and Governance (ESG) ratings and decarbonization metrics' },
       { path: '/api/analytics/credit-ratings', method: 'GET', description: 'Credit risk default probability (PD 1Y/5Y), recovery rate, and agency ratings' },
       { path: '/api/analytics/liquidity-treasury', method: 'GET', description: 'Institutional Liquidity Coverage Ratio (LCR), cash runway months, and treasury deployment metrics' },
+      { path: '/api/analytics/capital-allocation', method: 'GET', description: 'Institutional ROIC vs WACC economic profit spread and capital reinvestment metrics' },
       { path: '/api/health-scorecard', method: 'GET', description: 'Piotroski & Altman health scores' },
       { path: '/api/dax-measures', method: 'GET', description: 'DAX analytical measures catalog with category filtering' },
-      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, scenario, esg, credit, liquidity, dax) in JSON or CSV format' }
+      { path: '/api/export', method: 'GET', description: 'Export dataset (overview, sectors, health, companies, kpis, growth, valuation, peers, risk, dupont, working-capital, dividend, scenario, esg, credit, liquidity, capital, dax) in JSON or CSV format' }
     ],
     timestamp: new Date().toISOString()
   });
@@ -404,6 +414,8 @@ app.get('/api/export', (req, res) => {
       payload = fallbackCreditRatings;
     } else if (dataset === 'liquidity') {
       payload = fallbackLiquidityTreasury;
+    } else if (dataset === 'capital') {
+      payload = fallbackCapitalAllocation;
     } else if (dataset === 'overview') {
       payload = fallbackOverview.chartData;
     } else {
@@ -1094,6 +1106,42 @@ app.get('/api/analytics/liquidity-treasury', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve liquidity and treasury analytics', message: err.message });
+  }
+});
+
+// Institutional Capital Allocation & Economic Spread Analytics Endpoint
+app.get('/api/analytics/capital-allocation', async (req, res) => {
+  try {
+    const { sector, tier, sortBy = 'economicSpreadPct', order = 'desc' } = req.query;
+    let results = [...fallbackCapitalAllocation];
+
+    if (sector && sector !== 'All') {
+      const secLower = String(sector).toLowerCase();
+      results = results.filter(c => c.sector.toLowerCase().includes(secLower));
+    }
+
+    if (tier && tier !== 'All') {
+      const tierLower = String(tier).toLowerCase();
+      results = results.filter(c => c.allocationTier.toLowerCase().includes(tierLower));
+    }
+
+    const isAsc = String(order).toLowerCase() === 'asc';
+    results.sort((a, b) => {
+      const valA = a[sortBy] ?? 0;
+      const valB = b[sortBy] ?? 0;
+      if (typeof valA === 'string') {
+        return isAsc ? valA.localeCompare(String(valB)) : String(valB).localeCompare(valA);
+      }
+      return isAsc ? Number(valA) - Number(valB) : Number(valB) - Number(valA);
+    });
+
+    res.json({
+      capitalAllocation: results,
+      totalCount: results.length,
+      status: pool ? "live_fallback" : "mock"
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve capital allocation analytics', message: err.message });
   }
 });
 
